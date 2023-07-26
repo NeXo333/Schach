@@ -1,0 +1,17 @@
+/*The setting "java.configuration.updateBuildConfiguration" 
+interactive" is specific to the Java extension for Visual Studio
+ Code (also known as "Java Language Support") provided by Red Hat.
+  This setting controls how the Java extension updates the build
+   configuration in your project.*/
+
+{
+    "java.configuration.updateBuildConfiguration": "interactive"
+}
+
+/*The configuration setting "java.configuration.updateBuildConfiguration":
+ "interactive" in Visual Studio Code's Java extension allows you to review 
+ and approve build configuration changes before they are applied.
+
+ The configuration setting "java.configuration.updateBuildConfiguration":
+  "automatic" in Visual Studio Code's Jav a extension automatically applies 
+  build configuration changes without showing interactive notifications.*/
