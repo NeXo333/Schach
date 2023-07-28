@@ -1,0 +1,13 @@
+/*The configuration setting "java.configuration.updateBuildConfiguration":
+interactive" in Visual Studio Code's Java extension allows you to review 
+and approve build configuration changes before they are applied.*/
+
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "files.eol": "\n", //automatic line breaks (Zeilenumbruch)
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 80
+}
+
+
+

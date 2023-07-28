@@ -1,0 +1,20 @@
+TODO: finish and get one fixed indent style 
+# Top-most EditorConfig file
+root = true
+
+# Set end-of-line (EOL) character to LF (Line Feed)
+[*]
+end_of_line = lf
+
+# Enable word wrapping at column 80
+[*.{java}]
+editorconfig = true
+
+# Indentation settings (using tabs)
+[*]
+indent_style = tab
+indent_size = 1
+
+# Java extension configuration
+[{*.java}]
+java.configuration.updateBuildConfiguration = interactive 
