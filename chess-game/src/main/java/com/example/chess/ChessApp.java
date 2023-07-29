@@ -1,10 +1,7 @@
 package com.example.chess;
-import com.example.chess.ChessPiece.PieceColor;
-
 
 import javafx.application.Application;
 import javafx.geometry.HPos;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
@@ -16,14 +13,22 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+
 public class ChessApp extends Application {
 
     private static final int BOARD_SIZE = 8;
     private static final int SQUARE_SIZE = 80;
+    //the board is now an array for easier data manipulation
+    private Rectangle[][] squares;
+// second array that checks clicked squares
+    private boolean[][] clickedFlags;
 
     @Override
     public void start(Stage primaryStage) {
         GridPane chessboard = createChessboard();
+
+
+
 
         Scene scene = new Scene(chessboard, BOARD_SIZE * SQUARE_SIZE, BOARD_SIZE * SQUARE_SIZE);
         primaryStage.setScene(scene);
@@ -39,11 +44,20 @@ public class ChessApp extends Application {
     private GridPane createChessboard() {
         GridPane chessboard = new GridPane();
         chessboard.setAlignment(Pos.CENTER);
+        squares = new Rectangle[BOARD_SIZE][BOARD_SIZE];
+        clickedFlags = new boolean[BOARD_SIZE][BOARD_SIZE];
 
         for (int row = 0; row < BOARD_SIZE; row++) {
             for (int col = 0; col < BOARD_SIZE; col++) {
                 Rectangle square = new Rectangle(SQUARE_SIZE, SQUARE_SIZE);
-                square.setFill((row + col) % 2 == 0 ? Color.WHITE : Color.LIGHTGRAY);
+                squares[row][col] = square;
+                squares[row][col].setFill((row + col) % 2 == 0 ? Color.WHITE : Color.LIGHTGRAY);
+
+                //adds a Eventhandler that will be further improved
+                int finalRow = row;
+                int finalCol = col;
+                square.setOnMouseClicked(e -> handleSquareClicked(finalRow,finalCol));
+
                 chessboard.add(square, col, row);
             }
         }
@@ -77,17 +91,17 @@ public class ChessApp extends Application {
         chessboard.add(rowText, 0, i);
         }
     }
+//handleSquare is a proof of concept and is in wip
+    private void handleSquareClicked(int row, int col) {
+        System.out.println("Clicked on square at row: " + row + ", column: " + col);
+        // Toggle the clicked flag for the square
+        clickedFlags[row][col] = !clickedFlags[row][col];
+
+        // Update the square appearance based on the clicked flag
+        squares[row][col].setFill(clickedFlags[row][col] ? Color.YELLOW : ((row + col) % 2 == 0 ? Color.WHITE : Color.LIGHTGRAY));
+    }
 
 
-
-
-
-
-
-
-
-    
-  
     public static void main(String[] args) {
         launch(args);
     
