@@ -1,3 +1,4 @@
+
 package com.example.chess;
 
 import javafx.application.Application;
@@ -28,7 +29,7 @@ public class ChessApp extends Application {
         GridPane chessboard = createChessboard();
 
 
-                                                    
+
 
         Scene scene = new Scene(chessboard, BOARD_SIZE * SQUARE_SIZE, BOARD_SIZE * SQUARE_SIZE);
         primaryStage.setScene(scene);
@@ -36,9 +37,9 @@ public class ChessApp extends Application {
         primaryStage.show();
     }
 
-    /** 
-     * Creates the chessboards and colors it 
-     * 
+    /**
+     * Creates the chessboards and colors it
+     *
      * @return chessboard
      */
     private GridPane createChessboard() {
@@ -69,7 +70,7 @@ public class ChessApp extends Application {
 
     /**
      * Adds for the rows the numbers 1 to 8 and for the columns the letters a to h
-     * 
+     *
      * @param chessboard
      */
     private void addIndices(GridPane chessboard) {
@@ -81,7 +82,7 @@ public class ChessApp extends Application {
         colText.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         chessboard.add(colText, i, 0);
 
-         //Puts the letters for the columns centered and top 
+         //Puts the letters for the columns centered and top
         GridPane.setHalignment(colText, HPos.CENTER);
         GridPane.setValignment(colText, VPos.TOP);
 
@@ -104,7 +105,6 @@ public class ChessApp extends Application {
 
     public static void main(String[] args) {
         launch(args);
-    
+
     }
 }
-
