@@ -28,7 +28,7 @@ public class ChessApp extends Application {
         GridPane chessboard = createChessboard();
 
 
-
+                                                    
 
         Scene scene = new Scene(chessboard, BOARD_SIZE * SQUARE_SIZE, BOARD_SIZE * SQUARE_SIZE);
         primaryStage.setScene(scene);
