@@ -20,8 +20,10 @@ public class App extends Application {
    */
   @Override
   public void start(Stage primaryStage) {
-    GridPane chessboard = BoardUtils.createChessboard();
-    Scene scene = new Scene(chessboard, BoardUtils.BOARD_SIZE + 150, BoardUtils.BOARD_SIZE + 150);
+    BoardUtils boardUtils = new BoardUtils();
+    GridPane chessboard = boardUtils.createChessboard();
+
+    Scene scene = new Scene(chessboard, 850, 850);
     primaryStage.setScene(scene);
     primaryStage.setTitle("Chess by TH-OWL");
     primaryStage.show();

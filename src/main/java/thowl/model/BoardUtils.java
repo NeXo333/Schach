@@ -1,68 +1,71 @@
 package thowl.model;
 
-import javafx.geometry.HPos;
 import javafx.geometry.Pos;
-import javafx.geometry.VPos;
+import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
 /**
  * Has methods to create a colored chessboard + indices and will be called by the main method
  * (App.java)
  */
 public class BoardUtils {
-  public static final int BOARD_FIELDS = 8;
-  public static final int BOARD_SIZE = BOARD_FIELDS * 70;
+  public double cellSize = 70.0;
+  public Cell[][] cell = new Cell[8][8];
 
   /**
    * Creates the colored boared and calls method addIndices for the details
    *
    * @return Chessborard
    */
-  public static GridPane createChessboard() {
-    // creates colored 2D Array
-    Color[][] boardArray = new Color[BOARD_FIELDS][BOARD_FIELDS];
-    for (int row = 0; row < BOARD_FIELDS; row++) {
-      for (int col = 0; col < BOARD_FIELDS; col++) {
-        boardArray[row][col] = (row + col) % 2 == 0 ? Color.WHITE : Color.LIGHTGRAY;
-      }
-    }
-    // creates the Squares
+  public GridPane createChessboard() {
     GridPane chessboard = new GridPane();
     chessboard.setAlignment(Pos.CENTER);
-    for (int row = 0; row < BOARD_FIELDS; row++) {
-      for (int col = 0; col < BOARD_FIELDS; col++) {
-        // Square size important to static BOARD_SIZE
-        Rectangle square = new Rectangle(70, 70, boardArray[row][col]);
-        chessboard.add(square, col, row + 1); // +1 because positioning would be wrong
+    chessboard.setHgap(2); // Horizontal gap between cells
+    chessboard.setVgap(2); // Vertical gap between cells
+    // doesnt func
+    chessboard.setPadding(new javafx.geometry.Insets(10));
+
+    for (int row = 0; row < 8; row++) {
+      for (int col = 0; col < 8; col++) {
+        Color cellColor = (row + col) % 2 == 0 ? Color.WHITE : Color.LIGHTGRAY;
+
+        // Test for positioning of a pawn.
+        if (row == 1 || row == 6) {
+          String pieceName = "pawn";
+          String pieceImagePath = "/images/pawn.png"; // https://shorturl.at/cfnNV
+          Image pieceImage = new Image(getClass().getResourceAsStream(pieceImagePath));
+          cell[row][col] = new Cell(cellSize, cellColor, null, pieceName, pieceImage);
+
+          // Set the piece image for the cell
+          cell[row][col].setPieceImage(pieceImage);
+          chessboard.add(cell[row][col], col + 1, row + 1);
+
+        } else {
+          cell[row][col] = new Cell(cellSize, cellColor, null, null, null);
+          chessboard.add(cell[row][col], col + 1, row + 1);
+        }
       }
     }
-    addIndices(chessboard);
-    return chessboard;
-  }
 
-  /**
-   * Cretaes for the columns the numbers 1-8 and for the rows the letters a-h
-   *
-   * @param Gridpane Chessboard
-   */
-  private static void addIndices(GridPane chessboard) {
-    // Add column labels 'a' to 'h'
-    for (int col = 0; col < BOARD_FIELDS; col++) {
-      Text colLabel = new Text(String.valueOf((char) ('a' + col)));
-      colLabel.setFont(Font.font("Arial", 16));
-      chessboard.add(colLabel, col, 0);
-      GridPane.setHalignment(colLabel, HPos.CENTER); // Center horizontally in cell
+    // Add row indices (1-8)
+    for (int row = 0; row < 8; row++) {
+      Label rowIndex = new Label(String.valueOf(row + 1));
+      rowIndex.setPrefSize(cellSize, cellSize);
+      rowIndex.setAlignment(Pos.CENTER);
+      chessboard.add(rowIndex, 0, row + 1);
     }
-    // Add row labels '1' to '8'
-    for (int row = 0; row < BOARD_FIELDS; row++) {
-      Text rowLabel = new Text(String.valueOf(BOARD_FIELDS - row));
-      rowLabel.setFont(Font.font("Arial", 16));
-      chessboard.add(rowLabel, BOARD_FIELDS, row + 1);
-      GridPane.setValignment(rowLabel, VPos.CENTER); // Center vertically in cell
+
+    // Add column indices (A-H)
+    String[] columns = {"A", "B", "C", "D", "E", "F", "G", "H"};
+    for (int col = 0; col < 8; col++) {
+      Label colIndex = new Label(columns[col]);
+      colIndex.setPrefSize(cellSize, cellSize);
+      colIndex.setAlignment(Pos.CENTER);
+      chessboard.add(colIndex, col + 1, 0);
     }
+
+    return chessboard; // Return the created chessboard GridPane
   }
 }
