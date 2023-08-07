@@ -34,7 +34,7 @@ public class BoardUtils {
         // Test for positioning of a pawn.
         if (row == 1 || row == 6) {
           String pieceName = "pawn";
-          String pieceImagePath = "/images/pawn.png"; // https://shorturl.at/cfnNV
+          String pieceImagePath = "/images/blackPawn.png"; // https://shorturl.at/cfnNV
           Image pieceImage = new Image(getClass().getResourceAsStream(pieceImagePath));
           cell[row][col] = new Cell(cellSize, cellColor, null, pieceName, pieceImage);
 
