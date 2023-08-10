@@ -1,8 +1,12 @@
 package thowl.model;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 
@@ -11,8 +15,9 @@ import javafx.scene.paint.Color;
  * (App.java)
  */
 public class BoardUtils {
-  public double cellSize = 70.0;
+  public int cellSize = 70;
   public Cell[][] cell = new Cell[8][8];
+  private Cell selectedPiece = null;
 
   /**
    * Creates the colored boared and calls method addIndices for the details
@@ -31,34 +36,72 @@ public class BoardUtils {
     for (int row = 0; row < 8; row++) {
       for (int col = 0; col < 8; col++) {
         Color cellColor = (row + col) % 2 == 0 ? Color.LIGHTGRAY : Color.WHITE;
-        cell[row][col] = new Cell(cellSize, cellColor, null, null, null);
-        chessboard.add(cell[row][col], col + 1, row + 1);
+        cell[row][col] = new Cell(row, col, cellSize, cellColor, null, null, null);
+
+        // Set up the event handler for the cell
+        Cell currentCell = cell[row][col];
+        currentCell.setOnMouseClicked(event -> handleCellClick(currentCell));
+
+        chessboard.add(
+            cell[row][col], col + 1, row + 1); // one extra row & col for the indices in gridPane
       }
     }
     // Adds the pieces on there starting positions
     startPosition(chessboard);
 
-    // Add row indices (1-8)
-    for (int row = 0; row < 8; row++) {
-      Label rowIndex = new Label(String.valueOf(row + 1));
-      rowIndex.setPrefSize(cellSize, cellSize);
-      rowIndex.setAlignment(Pos.CENTER);
-      chessboard.add(rowIndex, 0, row + 1);
-    }
-
-    // Add column indices (A-H)
-    String[] columns = {"A", "B", "C", "D", "E", "F", "G", "H"};
-    for (int col = 0; col < 8; col++) {
-      Label colIndex = new Label(columns[col]);
-      colIndex.setPrefSize(cellSize, cellSize);
-      colIndex.setAlignment(Pos.CENTER);
-      chessboard.add(colIndex, col + 1, 0);
-    }
+    // adds the indices: 1-8 (row) and A-H (col)
+    addIndices(chessboard);
 
     // Test if you can move a piece
     movePiece(cell, 1, 1, 3, 1);
 
     return chessboard; // Return the created chessboard GridPane
+  }
+
+  /* For logic in moving a piece / handle cell click
+  private void logic(Cell cell) {
+    String pieceName = cell.getPieceName();
+    if (pieceName != null) {
+      switch (pieceName) {
+        case "pawn":
+          handlePawnMove(cell);
+          break;
+        case "knight":
+          handleKnightMove(cell);
+          break;
+          // ... (handle other pieces)
+      }
+    }
+  }
+  */
+
+  public void handleCellClick(Cell clickedCell) {
+    int row = clickedCell.getRow();
+    int col = clickedCell.getCol();
+
+    if (selectedPiece == null) {
+      // First click: Select the piece to move
+      if (clickedCell.getPieceName() != null) {
+        selectedPiece = clickedCell;
+        cell[row][col].setBackground(
+            new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
+      }
+    } else {
+      // Second click: Move the piece to the clicked cell
+      int fromRow = selectedPiece.getRow();
+      int fromCol = selectedPiece.getCol();
+
+      // Perform the piece movement using the fromRow, fromCol, toRow, and toCol values
+      movePiece(cell, fromRow, fromCol, row, col);
+
+      // Clear the selection and reset the background
+      cell[row][col].setBackground(
+          new Background(
+              new BackgroundFill(cell[row][col].getFieldColor(), CornerRadii.EMPTY, Insets.EMPTY)));
+      selectedPiece = null;
+    }
+
+    // Toggle visibility of the highlight overlay
   }
 
   private void startPosition(GridPane chessboard) {
@@ -116,27 +159,35 @@ public class BoardUtils {
     }
   }
 
+  public void addIndices(GridPane chessboard) {
+    // Add row indices (1-8)
+    for (int row = 0; row < 8; row++) {
+      Label rowIndex = new Label(String.valueOf(row + 1));
+      rowIndex.setPrefSize(cellSize, cellSize);
+      rowIndex.setAlignment(Pos.CENTER);
+      chessboard.add(rowIndex, 0, row + 1);
+    }
+
+    // Add column indices (A-H)
+    String[] columns = {"A", "B", "C", "D", "E", "F", "G", "H"};
+    for (int col = 0; col < 8; col++) {
+      Label colIndex = new Label(columns[col]);
+      colIndex.setPrefSize(cellSize, cellSize);
+      colIndex.setAlignment(Pos.CENTER);
+      chessboard.add(colIndex, col + 1, 0);
+    }
+  }
+
   // Testing with pieces moving:
-
   public void movePiece(Cell[][] cellArray, int fromRow, int fromCol, int toRow, int toCol) {
-    Cell fromCell = cell[fromRow][fromCol];
-
     // Get the piece values from the source cell
-    Color pieceColor = fromCell.getPieceColor();
-    String pieceName = fromCell.getPieceName();
-    Image pieceImage = fromCell.getPieceImage();
+    Color pieceColor = cellArray[fromRow][fromCol].getPieceColor();
+    String pieceName = cellArray[fromRow][fromCol].getPieceName();
+    Image pieceImage = cellArray[fromRow][fromCol].getPieceImage();
 
     // Set the piece values in the destination cell
     cellArray[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
-    cell[toRow][toCol].setPieceImage(pieceImage);
     // Clear the piece values in the source cell
     cellArray[fromRow][fromCol].clearPiece();
-
-    // Update the appearance of the cells
-    cellArray[fromRow][toRow].updateCellAppearance();
-    cellArray[toRow][toCol].updateCellAppearance();
   }
-
-  // ...
-
 }

@@ -2,21 +2,35 @@ package thowl.model;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 
 public class Cell extends StackPane {
-  public double cellSize = 70.0; // from BoardUtils. Wouldnt accept it direct from the other class
+
+  public int row; // shows the position on the board (in cell[row][col])
+  public int col;
+  public int cellSize = 70; // from BoardUtils. Wouldnt accept it direct from the other class
+
   private Color fieldColor;
   private Image pieceImage;
   private Color pieceColor;
   private String pieceName;
   private ImageView pieceImageView;
 
-  public Cell(double size, Color fieldColor, Color pieceColor, String pieceName, Image pieceImage) {
+  // Creation of a cell for every cell on the board and controlling it with a big cell[][] for
+  // movements and changes
+  public Cell(
+      int row,
+      int col,
+      int size,
+      Color fieldColor,
+      Color pieceColor,
+      String pieceName,
+      Image pieceImage) {
+    this.row = row;
+    this.col = col;
     this.fieldColor = fieldColor;
     this.pieceColor = pieceColor;
     this.pieceName = pieceName;
@@ -39,12 +53,30 @@ public class Cell extends StackPane {
     getChildren().addAll(background, pieceImageView);
   }
 
+  public int getRow() {
+    return row;
+  }
+
+  public void setRow(int row) {
+    this.row = row;
+  }
+
+  public int getCol() {
+    return col;
+  }
+
+  public void setCol(int col) {
+    this.col = col;
+  }
+
+  public Color getFieldColor() {
+    return fieldColor;
+  }
+
   // Add getter and setter methods for piece image
   public Image getPieceImage() {
     return pieceImageView.getImage();
   }
-
-  public void setPieceImage(Image pieceImage) {}
 
   public Color getPieceColor() {
     return pieceColor;
@@ -55,7 +87,6 @@ public class Cell extends StackPane {
   }
 
   public String getPieceName() {
-    System.out.println(pieceName);
     return pieceName;
   }
 
@@ -77,34 +108,5 @@ public class Cell extends StackPane {
     this.pieceName = null;
     this.pieceImage = null;
     pieceImageView.setImage(null);
-  }
-
-  public void updateCellAppearance() {
-    Rectangle background = new Rectangle(cellSize, cellSize, fieldColor);
-    background.setStroke(Color.BLACK);
-    background.setStrokeType(StrokeType.INSIDE);
-    background.setStrokeWidth(1.0);
-
-    // Update the piece image if there is one
-    if (pieceImage != null) {
-      pieceImageView.setImage(pieceImage);
-    } else {
-      // If there is no piece image, clear the existing one
-      pieceImageView.setImage(null);
-    }
-
-    // Clear the children and add the updated background and piece image
-    getChildren().clear();
-    getChildren().addAll(background, pieceImageView);
-  }
-
-  // Could be used for eventhandler
-  // Helper methods to get row and column indices
-  private int getRowIndex() {
-    return GridPane.getRowIndex(this);
-  }
-
-  private int getColIndex() {
-    return GridPane.getColumnIndex(this);
   }
 }
