@@ -27,44 +27,16 @@ public class BoardUtils {
     // doesnt func
     chessboard.setPadding(new javafx.geometry.Insets(10));
 
-    // create white pieces on the top
-    createPiece(chessboard, 0, 0, Color.WHITE, "rook", "/images/whiteRook.png");
-    createPiece(chessboard, 0, 1, Color.WHITE, "knight", "/images/whiteKnight.png");
-    createPiece(chessboard, 0, 2, Color.WHITE, "bishop", "/images/whiteBishop.png");
-    createPiece(chessboard, 0, 3, Color.WHITE, "queen", "/images/whiteQueen.png");
-    createPiece(chessboard, 0, 4, Color.WHITE, "king", "/images/whiteKing.png");
-    createPiece(chessboard, 0, 5, Color.WHITE, "bishop", "/images/whiteBishop.png");
-    createPiece(chessboard, 0, 6, Color.WHITE, "knight", "/images/whiteKnight.png");
-    createPiece(chessboard, 0, 7, Color.WHITE, "rook", "/images/whiteRook.png");
-
-    // Place white pawns
-    for (int col = 0; col < 8; col++) {
-      createPiece(chessboard, 1, col, Color.WHITE, "pawn", "/images/whitePawn.png");
-    }
-
-    // Create black pieces on the buttom
-    createPiece(chessboard, 7, 0, Color.BLACK, "rook", "/images/blackRook.png");
-    createPiece(chessboard, 7, 1, Color.BLACK, "knight", "/images/blackKnight.png");
-    createPiece(chessboard, 7, 2, Color.BLACK, "bishop", "/images/blackBishop.png");
-    createPiece(chessboard, 7, 3, Color.BLACK, "queen", "/images/blackQueen.png");
-    createPiece(chessboard, 7, 4, Color.BLACK, "king", "/images/blackKing.png");
-    createPiece(chessboard, 7, 5, Color.BLACK, "bishop", "/images/blackBishop.png");
-    createPiece(chessboard, 7, 6, Color.BLACK, "knight", "/images/blackKnight.png");
-    createPiece(chessboard, 7, 7, Color.BLACK, "rook", "/images/blackRook.png");
-
-    // Place black pawns
-    for (int col = 0; col < 8; col++) {
-      createPiece(chessboard, 6, col, Color.BLACK, "pawn", "/images/blackPawn.png");
-    }
-
     // Create empty cells for the rest of the chessboard
-    for (int row = 2; row <= 5; row++) {
+    for (int row = 0; row < 8; row++) {
       for (int col = 0; col < 8; col++) {
         Color cellColor = (row + col) % 2 == 0 ? Color.LIGHTGRAY : Color.WHITE;
         cell[row][col] = new Cell(cellSize, cellColor, null, null, null);
         chessboard.add(cell[row][col], col + 1, row + 1);
       }
     }
+    // Adds the pieces on there starting positions
+    startPosition(chessboard);
 
     // Add row indices (1-8)
     for (int row = 0; row < 8; row++) {
@@ -89,20 +61,59 @@ public class BoardUtils {
     return chessboard; // Return the created chessboard GridPane
   }
 
-  private void createPiece(
-      GridPane chessboard,
-      int row,
-      int col,
-      Color pieceColor,
-      String pieceName,
-      String pieceImagePath) {
-    Color cellColor = (row + col) % 2 == 0 ? Color.LIGHTGRAY : Color.WHITE;
-    Image pieceImage = new Image(getClass().getResourceAsStream(pieceImagePath));
+  private void startPosition(GridPane chessboard) {
+    // white rook
+    Image pieceImage = new Image(getClass().getResourceAsStream("/images/whiteRook.png"));
+    cell[0][0].setPieceValues(Color.WHITE, "rook", pieceImage);
+    cell[0][7].setPieceValues(Color.WHITE, "rook", pieceImage);
+    // black rook
+    pieceImage = new Image(getClass().getResourceAsStream("/images/blackRook.png"));
+    cell[7][0].setPieceValues(Color.BLACK, "rook", pieceImage);
+    cell[7][7].setPieceValues(Color.BLACK, "rook", pieceImage);
 
-    cell[row][col] = new Cell(cellSize, cellColor, pieceColor, pieceName, pieceImage);
-    cell[row][col].setPieceImage(pieceImage);
+    // white knight
+    pieceImage = new Image(getClass().getResourceAsStream("/images/whiteKnight.png"));
+    cell[0][1].setPieceValues(Color.WHITE, "knight", pieceImage);
+    cell[0][6].setPieceValues(Color.WHITE, "knight", pieceImage);
+    // black knight
+    pieceImage = new Image(getClass().getResourceAsStream("/images/blackKnight.png"));
+    cell[7][1].setPieceValues(Color.BLACK, "knight", pieceImage);
+    cell[7][6].setPieceValues(Color.BLACK, "knight", pieceImage);
 
-    chessboard.add(cell[row][col], col + 1, row + 1);
+    // white bishop
+    pieceImage = new Image(getClass().getResourceAsStream("/images/whiteBishop.png"));
+    cell[0][2].setPieceValues(Color.WHITE, "bishop", pieceImage);
+    cell[0][5].setPieceValues(Color.WHITE, "bishop", pieceImage);
+    // black bishop
+    pieceImage = new Image(getClass().getResourceAsStream("/images/blackBishop.png"));
+    cell[7][2].setPieceValues(Color.BLACK, "bishop", pieceImage);
+    cell[7][5].setPieceValues(Color.BLACK, "bishop", pieceImage);
+
+    // white king
+    pieceImage = new Image(getClass().getResourceAsStream("/images/whiteKing.png"));
+    cell[0][3].setPieceValues(Color.WHITE, "king", pieceImage);
+    // black King
+    pieceImage = new Image(getClass().getResourceAsStream("/images/blackKing.png"));
+    cell[7][3].setPieceValues(Color.BLACK, "king", pieceImage);
+
+    // white queen
+    pieceImage = new Image(getClass().getResourceAsStream("/images/whiteQueen.png"));
+    cell[0][4].setPieceValues(Color.WHITE, "queen", pieceImage);
+    // black queen
+    pieceImage = new Image(getClass().getResourceAsStream("/images/blackQueen.png"));
+    cell[7][4].setPieceValues(Color.BLACK, "queen", pieceImage);
+
+    // white pawn loop
+    pieceImage = new Image(getClass().getResourceAsStream("/images/whitePawn.png"));
+    for (int col = 0; col < 8; col++) {
+      cell[1][col].setPieceValues(Color.WHITE, "pawn", pieceImage);
+    }
+
+    // black pawn loop
+    pieceImage = new Image(getClass().getResourceAsStream("/images/blackPawn.png"));
+    for (int column = 0; column < 8; column++) {
+      cell[6][column].setPieceValues(Color.WHITE, "pawn", pieceImage);
+    }
   }
 
   // Testing with pieces moving:

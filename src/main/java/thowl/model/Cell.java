@@ -44,9 +44,7 @@ public class Cell extends StackPane {
     return pieceImageView.getImage();
   }
 
-  public void setPieceImage(Image pieceImage) {
-    pieceImageView.setImage(pieceImage);
-  }
+  public void setPieceImage(Image pieceImage) {}
 
   public Color getPieceColor() {
     return pieceColor;
@@ -70,6 +68,7 @@ public class Cell extends StackPane {
     this.pieceColor = pieceColor;
     this.pieceName = pieceName;
     this.pieceImage = pieceImage;
+    pieceImageView.setImage(pieceImage);
   }
 
   // clear cell
