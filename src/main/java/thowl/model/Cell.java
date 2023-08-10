@@ -19,8 +19,10 @@ public class Cell extends StackPane {
   private String pieceName;
   private ImageView pieceImageView;
 
-  // Creation of a cell for every cell on the board and controlling it with a big cell[][] for
-  // movements and changes
+  /**
+   * Creation of a cell for every cell on the board and controlling it with the big 2D cell[][] in
+   * boardUtils for movements and changes
+   */
   public Cell(
       int row,
       int col,
@@ -52,6 +54,14 @@ public class Cell extends StackPane {
     // Add the background and piece image to the StackPane
     getChildren().addAll(background, pieceImageView);
   }
+
+  // Method to change the background color of the cell
+  public void setBackground(Color color) {
+    Rectangle background = (Rectangle) getChildren().get(0);
+    background.setFill(color);
+  }
+
+  // ... other methods ...
 
   public int getRow() {
     return row;

@@ -1,12 +1,8 @@
 package thowl.model;
 
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 
@@ -17,7 +13,7 @@ import javafx.scene.paint.Color;
 public class BoardUtils {
   public int cellSize = 70;
   public Cell[][] cell = new Cell[8][8];
-  private Cell selectedPiece = null;
+  private Cell selectedCell = null;
 
   /**
    * Creates the colored boared and calls method addIndices for the details
@@ -39,8 +35,8 @@ public class BoardUtils {
         cell[row][col] = new Cell(row, col, cellSize, cellColor, null, null, null);
 
         // Set up the event handler for the cell
-        Cell currentCell = cell[row][col];
-        currentCell.setOnMouseClicked(event -> handleCellClick(currentCell));
+        Cell clickedCell = cell[row][col];
+        clickedCell.setOnMouseClicked(event -> handleCellClick(clickedCell));
 
         chessboard.add(
             cell[row][col], col + 1, row + 1); // one extra row & col for the indices in gridPane
@@ -51,9 +47,6 @@ public class BoardUtils {
 
     // adds the indices: 1-8 (row) and A-H (col)
     addIndices(chessboard);
-
-    // Test if you can move a piece
-    movePiece(cell, 1, 1, 3, 1);
 
     return chessboard; // Return the created chessboard GridPane
   }
@@ -76,32 +69,55 @@ public class BoardUtils {
   */
 
   public void handleCellClick(Cell clickedCell) {
-    int row = clickedCell.getRow();
-    int col = clickedCell.getCol();
+    int fromRow;
+    int fromCol;
+    int toRow;
+    int toCol;
 
-    if (selectedPiece == null) {
+    if (selectedCell == null) {
       // First click: Select the piece to move
       if (clickedCell.getPieceName() != null) {
-        selectedPiece = clickedCell;
-        cell[row][col].setBackground(
-            new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
+        selectedCell = clickedCell;
+
+        // Highlight the selected cell by changing its background color
+        clickedCell.setBackground(Color.YELLOW);
       }
     } else {
       // Second click: Move the piece to the clicked cell
-      int fromRow = selectedPiece.getRow();
-      int fromCol = selectedPiece.getCol();
+      fromRow = selectedCell.getRow();
+      fromCol = selectedCell.getCol();
+      toRow = clickedCell.getRow();
+      toCol = clickedCell.getCol();
 
-      // Perform the piece movement using the fromRow, fromCol, toRow, and toCol values
-      movePiece(cell, fromRow, fromCol, row, col);
-
-      // Clear the selection and reset the background
-      cell[row][col].setBackground(
-          new Background(
-              new BackgroundFill(cell[row][col].getFieldColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-      selectedPiece = null;
+      if (isMoveAllowed(selectedCell, clickedCell)) {
+        movePiece(cell, fromRow, fromCol, toRow, toCol);
+        selectedCell.setBackground(selectedCell.getFieldColor());
+        selectedCell = null;
+      }
     }
+  }
 
-    // Toggle visibility of the highlight overlay
+  // TODO: implement game logic for every piece. (Can be split into different Methods)
+  public Boolean isMoveAllowed(Cell selectedCell, Cell clickedCell) {
+    return true;
+  }
+
+  // Testing with pieces moving:
+  public void movePiece(Cell[][] cellArray, int fromRow, int fromCol, int toRow, int toCol) {
+    // Get the piece values from the source cell
+    Color pieceColor = cellArray[fromRow][fromCol].getPieceColor();
+    String pieceName = cellArray[fromRow][fromCol].getPieceName();
+    Image pieceImage = cellArray[fromRow][fromCol].getPieceImage();
+
+    // Set the piece values in the destination cell
+    cellArray[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
+    // Clear the piece values in the source cell
+    cellArray[fromRow][fromCol].clearPiece();
+
+    // printing of the move (could be shown on gui)
+    char pieceChar = pieceName.charAt(0);
+    char colIndice = (char) ('A' + toCol);
+    System.out.print(pieceChar + Integer.toString(toRow + 1) + colIndice + " ");
   }
 
   private void startPosition(GridPane chessboard) {
@@ -176,18 +192,5 @@ public class BoardUtils {
       colIndex.setAlignment(Pos.CENTER);
       chessboard.add(colIndex, col + 1, 0);
     }
-  }
-
-  // Testing with pieces moving:
-  public void movePiece(Cell[][] cellArray, int fromRow, int fromCol, int toRow, int toCol) {
-    // Get the piece values from the source cell
-    Color pieceColor = cellArray[fromRow][fromCol].getPieceColor();
-    String pieceName = cellArray[fromRow][fromCol].getPieceName();
-    Image pieceImage = cellArray[fromRow][fromCol].getPieceImage();
-
-    // Set the piece values in the destination cell
-    cellArray[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
-    // Clear the piece values in the source cell
-    cellArray[fromRow][fromCol].clearPiece();
   }
 }
