@@ -25,7 +25,7 @@ public class BoardUtils {
     chessboard.setAlignment(Pos.CENTER);
     chessboard.setHgap(2); // Horizontal gap between cells
     chessboard.setVgap(2); // Vertical gap between cells
-    // doesnt func
+    // doesnt function
     chessboard.setPadding(new javafx.geometry.Insets(10));
 
     // Create empty cells for the rest of the chessboard
@@ -35,8 +35,9 @@ public class BoardUtils {
         cell[row][col] = new Cell(row, col, cellSize, cellColor, null, null, null);
 
         // Set up the event handler for the cell
-        Cell clickedCell = cell[row][col];
-        clickedCell.setOnMouseClicked(event -> handleCellClick(clickedCell));
+        final int finalRow= row;
+        final int finalCol= col;
+        cell[row][col].setOnMouseClicked(event -> handleCellClick(cell[finalRow][finalCol]));
 
         chessboard.add(
             cell[row][col], col + 1, row + 1); // one extra row & col for the indices in gridPane
@@ -51,24 +52,9 @@ public class BoardUtils {
     return chessboard; // Return the created chessboard GridPane
   }
 
-  /* For logic in moving a piece / handle cell click
-  private void logic(Cell cell) {
-    String pieceName = cell.getPieceName();
-    if (pieceName != null) {
-      switch (pieceName) {
-        case "pawn":
-          handlePawnMove(cell);
-          break;
-        case "knight":
-          handleKnightMove(cell);
-          break;
-          // ... (handle other pieces)
-      }
-    }
-  }
-  */
 
-  public void handleCellClick(Cell clickedCell) {
+
+  public void handleCellClick(Cell currentCell) {
     int fromRow;
     int fromCol;
     int toRow;
@@ -76,22 +62,22 @@ public class BoardUtils {
 
     if (selectedCell == null) {
       // First click: Select the piece to move
-      if (clickedCell.getPieceName() != null) {
-        selectedCell = clickedCell;
+      if (currentCell.getPieceName() != null) {
+        selectedCell = currentCell;
 
         // Highlight the selected cell by changing its background color
-        clickedCell.setBackground(Color.YELLOW);
+        currentCell.setRectangleFill(Color.YELLOW);
       }
     } else {
       // Second click: Move the piece to the clicked cell
       fromRow = selectedCell.getRow();
       fromCol = selectedCell.getCol();
-      toRow = clickedCell.getRow();
-      toCol = clickedCell.getCol();
+      toRow = currentCell.getRow();
+      toCol = currentCell.getCol();
 
-      if (isMoveAllowed(selectedCell, clickedCell)) {
+      if (isMoveAllowed(selectedCell, currentCell)) {
         movePiece(cell, fromRow, fromCol, toRow, toCol);
-        selectedCell.setBackground(selectedCell.getFieldColor());
+        selectedCell.setRectangleFill(selectedCell.getFieldColor());
         selectedCell = null;
       }
     }
@@ -103,22 +89,6 @@ public class BoardUtils {
   }
 
   // Testing with pieces moving:
-  public void movePiece(Cell[][] cellArray, int fromRow, int fromCol, int toRow, int toCol) {
-    // Get the piece values from the source cell
-    Color pieceColor = cellArray[fromRow][fromCol].getPieceColor();
-    String pieceName = cellArray[fromRow][fromCol].getPieceName();
-    Image pieceImage = cellArray[fromRow][fromCol].getPieceImage();
-
-    // Set the piece values in the destination cell
-    cellArray[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
-    // Clear the piece values in the source cell
-    cellArray[fromRow][fromCol].clearPiece();
-
-    // printing of the move (could be shown on gui)
-    char pieceChar = pieceName.charAt(0);
-    char colIndice = (char) ('A' + toCol);
-    System.out.print(pieceChar + Integer.toString(toRow + 1) + colIndice + " ");
-  }
 
   private void startPosition(GridPane chessboard) {
     // white rook
@@ -192,5 +162,18 @@ public class BoardUtils {
       colIndex.setAlignment(Pos.CENTER);
       chessboard.add(colIndex, col + 1, 0);
     }
+  }
+
+  // Testing with pieces moving:
+  public void movePiece(Cell[][] cellArray, int fromRow, int fromCol, int toRow, int toCol) {
+    // Get the piece values from the source cell
+    Color pieceColor = cellArray[fromRow][fromCol].getPieceColor();
+    String pieceName = cellArray[fromRow][fromCol].getPieceName();
+    Image pieceImage = cellArray[fromRow][fromCol].getPieceImage();
+
+    // Set the piece values in the destination cell
+    cellArray[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
+    // Clear the piece values in the source cell
+    cellArray[fromRow][fromCol].clearPiece();
   }
 }
