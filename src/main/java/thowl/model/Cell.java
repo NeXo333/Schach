@@ -12,7 +12,7 @@ public class Cell extends StackPane {
 
   public int row; // shows the position on the board (in cell[row][col])
   public int col;
- // public int cellSize = 70; // from BoardUtils. Wouldnt accept it direct from the other class
+  // public int cellSize = 70; // from BoardUtils. Wouldnt accept it direct from the other class
 
   private Color fieldColor;
   private Image pieceImage;
@@ -25,14 +25,14 @@ public class Cell extends StackPane {
   // movements and changes
   public Cell(
       int row,
-    int col,
-    int size,
-    Color fieldColor,
-    Color pieceColor,
-    String pieceName,
-    Image pieceImage) {
-      this.row = row;
-      this.col = col;
+      int col,
+      int size,
+      Color fieldColor,
+      Color pieceColor,
+      String pieceName,
+      Image pieceImage) {
+    this.row = row;
+    this.col = col;
     this.fieldColor = fieldColor;
     this.pieceColor = pieceColor;
     this.pieceName = pieceName;
@@ -55,14 +55,15 @@ public class Cell extends StackPane {
     getChildren().addAll(background, pieceImageView);
   }
 
-
-  public Paint getRectangleFill(){
+  public Paint getRectangleFill() {
     return this.background.getFill();
   }
-  public void setRectangleFill(Color color){
+
+  public void setRectangleFill(Color color) {
     this.background.setFill(color);
     return;
   }
+
   public int getRow() {
     return row;
   }
@@ -102,6 +103,14 @@ public class Cell extends StackPane {
 
   public void setPieceName(String pieceName) {
     this.pieceName = pieceName;
+  }
+
+  public Boolean isEmpty() {
+    if (pieceName == null) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   // big setter:

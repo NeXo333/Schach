@@ -35,8 +35,8 @@ public class BoardUtils {
         cell[row][col] = new Cell(row, col, cellSize, cellColor, null, null, null);
 
         // Set up the event handler for the cell
-        final int finalRow= row;
-        final int finalCol= col;
+        final int finalRow = row;
+        final int finalCol = col;
         cell[row][col].setOnMouseClicked(event -> handleCellClick(cell[finalRow][finalCol]));
 
         chessboard.add(
@@ -51,8 +51,6 @@ public class BoardUtils {
 
     return chessboard; // Return the created chessboard GridPane
   }
-
-
 
   public void handleCellClick(Cell currentCell) {
     int fromRow;
@@ -74,8 +72,7 @@ public class BoardUtils {
       fromCol = selectedCell.getCol();
       toRow = currentCell.getRow();
       toCol = currentCell.getCol();
-
-      if (isMoveAllowed(selectedCell, currentCell)) {
+      if (isPawnMoveAllowed(selectedCell, fromRow, fromCol, currentCell, toRow, toCol)) {
         movePiece(cell, fromRow, fromCol, toRow, toCol);
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
         selectedCell = null;
@@ -85,10 +82,68 @@ public class BoardUtils {
 
   // TODO: implement game logic for every piece. (Can be split into different Methods)
   public Boolean isMoveAllowed(Cell selectedCell, Cell clickedCell) {
+    // case pawn
+    // case rook ..
     return true;
   }
 
-  // Testing with pieces moving:
+  /**
+   * Game logic for pawns
+   *
+   * @param Cell seletedCell, Cell clickedCell
+   */
+  public Boolean isPawnMoveAllowed(
+      Cell selectedCell, int fromRow, int fromCol, Cell clickedCell, int toRow, int toCol) {
+
+    if (!"pawn".equals(selectedCell.getPieceName())) {
+      return false;
+    }
+
+    if (selectedCell.getPieceColor() == Color.WHITE) {
+
+      // true: trying to move forward. false: trying to hit.
+      if (fromCol == toCol) {
+
+        // one cell forward
+        if ((fromRow - toRow == -1) && clickedCell.isEmpty()) {
+          return true;
+        }
+        // two cells forward
+        if ((fromRow == 1 && toRow == 3) && cell[2][toCol].isEmpty() && clickedCell.isEmpty()) {
+          return true;
+        }
+
+        // hit (left or right)
+      } else if (((fromCol - toCol == -1) || (fromCol - toCol == 1))
+          && (fromRow - toRow == -1)
+          && cell[toRow][toCol].getPieceColor() == Color.BLACK) {
+        return true;
+      }
+
+      // black moves
+    } else {
+      // true: trying to move forward. false: trying to hit.
+      if (fromCol == toCol) {
+
+        // one cell forward
+        if ((fromRow - toRow == 1) && clickedCell.isEmpty()) {
+          return true;
+        }
+        // two cells forward
+        if ((fromRow == 6 && toRow == 4) && cell[5][toCol].isEmpty() && clickedCell.isEmpty()) {
+          return true;
+        }
+
+        // hit (left or right)
+      } else if (((fromCol - toCol == 1) || (fromCol - toCol == -1))
+          && (fromRow - toRow == 1)
+          && clickedCell.getPieceColor() == Color.WHITE) {
+        return true;
+      }
+    }
+    System.out.print(" not a possible move ");
+    return false;
+  }
 
   private void startPosition(GridPane chessboard) {
     // white rook
@@ -141,7 +196,7 @@ public class BoardUtils {
     // black pawn loop
     pieceImage = new Image(getClass().getResourceAsStream("/images/blackPawn.png"));
     for (int column = 0; column < 8; column++) {
-      cell[6][column].setPieceValues(Color.WHITE, "pawn", pieceImage);
+      cell[6][column].setPieceValues(Color.BLACK, "pawn", pieceImage);
     }
   }
 
@@ -166,6 +221,8 @@ public class BoardUtils {
 
   // Testing with pieces moving:
   public void movePiece(Cell[][] cellArray, int fromRow, int fromCol, int toRow, int toCol) {
+    String pieceKilled = cell[toRow][toCol].getPieceName();
+
     // Get the piece values from the source cell
     Color pieceColor = cellArray[fromRow][fromCol].getPieceColor();
     String pieceName = cellArray[fromRow][fromCol].getPieceName();
@@ -173,6 +230,36 @@ public class BoardUtils {
 
     // Set the piece values in the destination cell
     cellArray[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
+
+    // printing action to the terminal (Could be implemented on the screen).
+    char firstChar = pieceName.charAt(0);
+    char fromChar = (char) (fromCol + 'A');
+    char toChar = (char) (toCol + 'A');
+    if (pieceKilled == null) {
+      System.out.print(
+          "\n"
+              + firstChar
+              + ""
+              + (fromRow + 1)
+              + fromChar
+              + " to "
+              + (toRow + 1)
+              + toChar
+              + "     "); // nothing in here. Auto format is better like this
+    } else {
+      System.out.print(
+          "\n"
+              + firstChar
+              + ""
+              + (fromRow + 1)
+              + fromChar
+              + " to "
+              + (toRow + 1)
+              + toChar
+              + " takes "
+              + pieceKilled);
+    }
+
     // Clear the piece values in the source cell
     cellArray[fromRow][fromCol].clearPiece();
   }
