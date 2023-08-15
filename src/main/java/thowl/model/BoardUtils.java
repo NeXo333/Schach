@@ -37,7 +37,9 @@ public class BoardUtils {
         // Set up the event handler for the cell
         final int finalRow = row;
         final int finalCol = col;
-        cell[row][col].setOnMouseClicked(event -> handleCellClick(cell[finalRow][finalCol]));
+        cell[row][col].setOnMouseClicked(event ->{
+          handleCellClick(cell[finalRow][finalCol]);
+        });
 
         chessboard.add(
             cell[row][col], col + 1, row + 1); // one extra row & col for the indices in gridPane
@@ -52,6 +54,24 @@ public class BoardUtils {
     return chessboard; // Return the created chessboard GridPane
   }
 
+  public void addIndices(GridPane chessboard) {
+    // Add row indices (1-8)
+    for (int row = 0; row < 8; row++) {
+      Label rowIndex = new Label(String.valueOf(row + 1));
+      rowIndex.setPrefSize(cellSize, cellSize);
+      rowIndex.setAlignment(Pos.CENTER);
+      chessboard.add(rowIndex, 0, row + 1);
+    }
+
+    // Add column indices (A-H)
+    String[] columns = {"A", "B", "C", "D", "E", "F", "G", "H"};
+    for (int col = 0; col < 8; col++) {
+      Label colIndex = new Label(columns[col]);
+      colIndex.setPrefSize(cellSize, cellSize);
+      colIndex.setAlignment(Pos.CENTER);
+      chessboard.add(colIndex, col + 1, 0);
+    }
+  }
   public void handleCellClick(Cell currentCell) {
     int fromRow;
     int fromCol;
@@ -77,6 +97,14 @@ public class BoardUtils {
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
         selectedCell = null;
       }
+        // second click : deselect the selected piece
+      if(isPawnMoveAllowed(fromRow, fromCol, toRow, toCol) == false){
+        selectedCell.setRectangleFill(currentCell.getFieldColor());
+        selectedCell = null;
+      }
+
+
+
     }
   }
 
@@ -205,29 +233,12 @@ public class BoardUtils {
     }
   }
 
-  public void addIndices(GridPane chessboard) {
-    // Add row indices (1-8)
-    for (int row = 0; row < 8; row++) {
-      Label rowIndex = new Label(String.valueOf(row + 1));
-      rowIndex.setPrefSize(cellSize, cellSize);
-      rowIndex.setAlignment(Pos.CENTER);
-      chessboard.add(rowIndex, 0, row + 1);
-    }
 
-    // Add column indices (A-H)
-    String[] columns = {"A", "B", "C", "D", "E", "F", "G", "H"};
-    for (int col = 0; col < 8; col++) {
-      Label colIndex = new Label(columns[col]);
-      colIndex.setPrefSize(cellSize, cellSize);
-      colIndex.setAlignment(Pos.CENTER);
-      chessboard.add(colIndex, col + 1, 0);
-    }
-  }
 
   /**
    * Move a piece and print its changes.
    *
-   * @param cellArray
+
    * @param fromRow
    * @param fromCol
    * @param toRow
