@@ -72,8 +72,8 @@ public class BoardUtils {
       fromCol = selectedCell.getCol();
       toRow = currentCell.getRow();
       toCol = currentCell.getCol();
-      if (isPawnMoveAllowed(selectedCell, fromRow, fromCol, currentCell, toRow, toCol)) {
-        movePiece(cell, fromRow, fromCol, toRow, toCol);
+      if (isPawnMoveAllowed(fromRow, fromCol, toRow, toCol)) {
+        movePiece(fromRow, fromCol, toRow, toCol);
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
         selectedCell = null;
       }
@@ -88,35 +88,40 @@ public class BoardUtils {
   }
 
   /**
-   * Game logic for pawns
+   * Checks if a pawn move is allowed.
    *
-   * @param Cell seletedCell, Cell clickedCell
+   * @param fromRow
+   * @param fromCol
+   * @param toRow
+   * @param toCol
+   * @return true if possible, false if not
    */
-  public Boolean isPawnMoveAllowed(
-      Cell selectedCell, int fromRow, int fromCol, Cell clickedCell, int toRow, int toCol) {
+  public Boolean isPawnMoveAllowed(int fromRow, int fromCol, int toRow, int toCol) {
+    Cell oldCell = cell[fromRow][fromCol];
+    Cell newCell = cell[toRow][toCol];
 
-    if (!"pawn".equals(selectedCell.getPieceName())) {
+    if (!"pawn".equals(oldCell.getPieceName())) {
       return false;
     }
 
-    if (selectedCell.getPieceColor() == Color.WHITE) {
+    if (oldCell.getPieceColor() == Color.WHITE) {
 
       // true: trying to move forward. false: trying to hit.
       if (fromCol == toCol) {
 
         // one cell forward
-        if ((fromRow - toRow == -1) && clickedCell.isEmpty()) {
+        if ((fromRow - toRow == -1) && newCell.isEmpty()) {
           return true;
         }
         // two cells forward
-        if ((fromRow == 1 && toRow == 3) && cell[2][toCol].isEmpty() && clickedCell.isEmpty()) {
+        if ((fromRow == 1 && toRow == 3) && cell[2][toCol].isEmpty() && newCell.isEmpty()) {
           return true;
         }
 
         // hit (left or right)
       } else if (((fromCol - toCol == -1) || (fromCol - toCol == 1))
           && (fromRow - toRow == -1)
-          && cell[toRow][toCol].getPieceColor() == Color.BLACK) {
+          && newCell.getPieceColor() == Color.BLACK) {
         return true;
       }
 
@@ -126,18 +131,18 @@ public class BoardUtils {
       if (fromCol == toCol) {
 
         // one cell forward
-        if ((fromRow - toRow == 1) && clickedCell.isEmpty()) {
+        if ((fromRow - toRow == 1) && newCell.isEmpty()) {
           return true;
         }
         // two cells forward
-        if ((fromRow == 6 && toRow == 4) && cell[5][toCol].isEmpty() && clickedCell.isEmpty()) {
+        if ((fromRow == 6 && toRow == 4) && cell[5][toCol].isEmpty() && newCell.isEmpty()) {
           return true;
         }
 
         // hit (left or right)
       } else if (((fromCol - toCol == 1) || (fromCol - toCol == -1))
           && (fromRow - toRow == 1)
-          && clickedCell.getPieceColor() == Color.WHITE) {
+          && newCell.getPieceColor() == Color.WHITE) {
         return true;
       }
     }
@@ -219,17 +224,28 @@ public class BoardUtils {
     }
   }
 
-  // Testing with pieces moving:
-  public void movePiece(Cell[][] cellArray, int fromRow, int fromCol, int toRow, int toCol) {
+  /**
+   * Move a piece and print its changes.
+   *
+   * @param cellArray
+   * @param fromRow
+   * @param fromCol
+   * @param toRow
+   * @param toCol
+   */
+  public void movePiece(int fromRow, int fromCol, int toRow, int toCol) {
     String pieceKilled = cell[toRow][toCol].getPieceName();
 
     // Get the piece values from the source cell
-    Color pieceColor = cellArray[fromRow][fromCol].getPieceColor();
-    String pieceName = cellArray[fromRow][fromCol].getPieceName();
-    Image pieceImage = cellArray[fromRow][fromCol].getPieceImage();
+    Color pieceColor = cell[fromRow][fromCol].getPieceColor();
+    String pieceName = cell[fromRow][fromCol].getPieceName();
+    Image pieceImage = cell[fromRow][fromCol].getPieceImage();
+
+    // Clear the piece values in the source cell
+    cell[fromRow][fromCol].clearPiece();
 
     // Set the piece values in the destination cell
-    cellArray[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
+    cell[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
 
     // printing action to the terminal (Could be implemented on the screen).
     char firstChar = pieceName.charAt(0);
@@ -259,8 +275,5 @@ public class BoardUtils {
               + " takes "
               + pieceKilled);
     }
-
-    // Clear the piece values in the source cell
-    cellArray[fromRow][fromCol].clearPiece();
   }
 }
