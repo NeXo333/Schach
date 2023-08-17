@@ -14,6 +14,7 @@ public class BoardUtils {
   public int cellSize = 70;
   public Cell[][] cell = new Cell[8][8];
   private Cell selectedCell = null;
+  private Color currentTurnColor = Color.WHITE;
 
   /**
    * Creates the colored boared and calls method addIndices for the details
@@ -44,7 +45,7 @@ public class BoardUtils {
       }
     }
     // Adds the pieces on there starting positions
-    startPosition(chessboard);
+    startPosition();
 
     // adds the indices: 1-8 (row) and A-H (col)
     addIndices(chessboard);
@@ -72,10 +73,61 @@ public class BoardUtils {
       fromCol = selectedCell.getCol();
       toRow = currentCell.getRow();
       toCol = currentCell.getCol();
-      if (isPawnMoveAllowed(fromRow, fromCol, toRow, toCol)) {
-        movePiece(fromRow, fromCol, toRow, toCol);
+      if (selectedCell.getPieceColor() != currentTurnColor) {
+        System.out.print("It's not your turn. "); // Inform the player
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
         selectedCell = null;
+        return; // Exit the function without making any move
+      }
+
+      if (selectedCell.getPieceName() == "rook") {
+        if (isRookMoveAllowed(fromRow, fromCol, toRow, toCol)) {
+          movePiece(fromRow, fromCol, toRow, toCol);
+          selectedCell.setRectangleFill(selectedCell.getFieldColor());
+          selectedCell = null;
+        } else {
+          System.out.print(" not a possible move ");
+        }
+      } else if (selectedCell.getPieceName() == "pawn") {
+        if (isPawnMoveAllowed(fromRow, fromCol, toRow, toCol)) {
+          movePiece(fromRow, fromCol, toRow, toCol);
+          selectedCell.setRectangleFill(selectedCell.getFieldColor());
+          selectedCell = null;
+        } else {
+          System.out.print(" not a possible move ");
+        }
+      } else if (selectedCell.getPieceName() == "bishop") {
+        if (isBishopMoveAllowed(fromRow, fromCol, toRow, toCol)) {
+          movePiece(fromRow, fromCol, toRow, toCol);
+          selectedCell.setRectangleFill(selectedCell.getFieldColor());
+          selectedCell = null;
+        } else {
+          System.out.print(" not a possible move ");
+        }
+      } else if (selectedCell.getPieceName() == "knight") {
+        if (isKnightMoveAllowed(fromRow, fromCol, toRow, toCol)) {
+          movePiece(fromRow, fromCol, toRow, toCol);
+          selectedCell.setRectangleFill(selectedCell.getFieldColor());
+          selectedCell = null;
+        } else {
+          System.out.print(" not a possible move ");
+        }
+      } else if (selectedCell.getPieceName() == "king") {
+        if (isKingMoveAllowed(fromRow, fromCol, toRow, toCol)) {
+          movePiece(fromRow, fromCol, toRow, toCol);
+          selectedCell.setRectangleFill(selectedCell.getFieldColor());
+          selectedCell = null;
+        } else {
+          System.out.print(" not a possible move ");
+        }
+      } else if (selectedCell.getPieceName() == "queen") {
+        if (isQueenMoveAllowed(fromRow, fromCol, toRow, toCol)) {
+          movePiece(fromRow, fromCol, toRow, toCol);
+          selectedCell.setRectangleFill(selectedCell.getFieldColor());
+          selectedCell = null;
+        } else {
+          System.out.print(" not a possible move ");
+        }
       }
     }
   }
@@ -85,6 +137,144 @@ public class BoardUtils {
     // case pawn
     // case rook ..
     return true;
+  }
+
+  public Boolean isQueenMoveAllowed(int fromRow, int fromCol, int toRow, int toCol) {
+    int rowDistance = Math.abs(toRow - fromRow);
+    int colDistance = Math.abs(toCol - fromCol);
+
+    // Queen can move horizontally, vertically, or diagonally
+    if ((fromRow == toRow || fromCol == toCol) || (rowDistance == colDistance)) {
+      // Check if the path is clear for the move
+      int rowStep = (toRow > fromRow) ? 1 : (toRow < fromRow) ? -1 : 0;
+      int colStep = (toCol > fromCol) ? 1 : (toCol < fromCol) ? -1 : 0;
+
+      for (int row = fromRow + rowStep, col = fromCol + colStep;
+          row != toRow || col != toCol;
+          row += rowStep, col += colStep) {
+        if (!cell[row][col].isEmpty()) {
+          return false; // Path is blocked
+        }
+      }
+
+      // Check if the destination cell is empty or occupied by an opponent's piece
+      if (cell[toRow][toCol].isEmpty()
+          || cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public Boolean isKingMoveAllowed(int fromRow, int fromCol, int toRow, int toCol) {
+    int rowDistance = Math.abs(toRow - fromRow);
+    int colDistance = Math.abs(toCol - fromCol);
+
+    // King can move one square in any direction
+    if (rowDistance <= 1 && colDistance <= 1) {
+      // Check if the destination cell is empty or occupied by an opponent's piece
+      if (cell[toRow][toCol].isEmpty()
+          || cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public Boolean isKnightMoveAllowed(int fromRow, int fromCol, int toRow, int toCol) {
+    int rowDistance = Math.abs(toRow - fromRow);
+    int colDistance = Math.abs(toCol - fromCol);
+
+    // Knight can move in an L-shape (2 squares in one direction and 1 square in the other)
+    if ((rowDistance == 2 && colDistance == 1) || (rowDistance == 1 && colDistance == 2)) {
+
+      // Destination cell should be empty or occupied by opponent's piece
+      if (cell[toRow][toCol].isEmpty()
+          || (cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor())) {
+        return true; // Move is allowed
+      }
+    }
+
+    return false; // Invalid move
+  }
+
+  // hard to unterstand
+  public Boolean isBishopMoveAllowed(int fromRow, int fromCol, int toRow, int toCol) {
+    // Bishop can move diagonally
+    if (Math.abs(fromRow - toRow) == Math.abs(fromCol - toCol)) {
+      int rowDirection = (toRow > fromRow) ? 1 : -1;
+      int colDirection = (toCol > fromCol) ? 1 : -1;
+
+      int currentRow = fromRow + rowDirection;
+      int currentCol = fromCol + colDirection;
+
+      while (currentRow != toRow && currentCol != toCol) {
+        if (!cell[currentRow][currentCol].isEmpty()) {
+          return false; // Path is blocked
+        }
+
+        currentRow += rowDirection;
+        currentCol += colDirection;
+      }
+
+      // Destination cell should be either empty or occupied by opponent's piece
+      if (cell[toRow][toCol].isEmpty()
+          || (cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor())) {
+        return true; // Move is allowed
+      }
+    }
+
+    return false; // Invalid move
+  }
+
+  /**
+   * Checks if rook moves are possible.
+   *
+   * @param fromRow
+   * @param fromCol
+   * @param toRow
+   * @param toCol
+   * @return true if possible, false if not
+   */
+  public Boolean isRookMoveAllowed(int fromRow, int fromCol, int toRow, int toCol) {
+    // Rook can move horizontally or vertically
+    if (fromRow == toRow || fromCol == toCol) {
+      // Check if there are any pieces in the path between from and to positions
+
+      // If moving horizontally
+      if (fromRow == toRow) {
+        int startCol = Math.min(fromCol, toCol) + 1;
+        int endCol = Math.max(fromCol, toCol);
+
+        for (int col = startCol; col < endCol; col++) {
+          if (!cell[fromRow][col].isEmpty()) {
+            return false; // Path is blocked
+          }
+        }
+      }
+
+      // If moving vertically
+      if (fromCol == toCol) {
+        int startRow = Math.min(fromRow, toRow) + 1;
+        int endRow = Math.max(fromRow, toRow);
+
+        for (int row = startRow; row < endRow; row++) {
+          if (!cell[row][fromCol].isEmpty()) {
+            return false; // Path is blocked
+          }
+        }
+      }
+
+      // Destination cell should be either empty or occupied by opponent's piece
+      if (cell[toRow][toCol].isEmpty()
+          || (cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor())) {
+        return true; // Move is allowed
+      }
+    }
+
+    return false; // Invalid move
   }
 
   /**
@@ -146,11 +336,10 @@ public class BoardUtils {
         return true;
       }
     }
-    System.out.print(" not a possible move ");
     return false;
   }
 
-  private void startPosition(GridPane chessboard) {
+  private void startPosition() {
     // white rook
     Image pieceImage = new Image(getClass().getResourceAsStream("/images/whiteRook.png"));
     cell[0][0].setPieceValues(Color.WHITE, "rook", pieceImage);
@@ -246,6 +435,9 @@ public class BoardUtils {
 
     // Set the piece values in the destination cell
     cell[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
+
+    // Update the current turn's color
+    currentTurnColor = (currentTurnColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
 
     // printing action to the terminal (Could be implemented on the screen).
     char firstChar = pieceName.charAt(0);
