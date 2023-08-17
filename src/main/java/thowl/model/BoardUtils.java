@@ -95,6 +95,7 @@ public class BoardUtils {
       fromCol = selectedCell.getCol();
       toRow = currentCell.getRow();
       toCol = currentCell.getCol();
+      // exit method if wrong color tries to move
       if (selectedCell.getPieceColor() != currentTurnColor) {
         System.out.print("It's not your turn. "); // Inform the player
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
@@ -102,56 +103,58 @@ public class BoardUtils {
         return; // Exit the function without making any move
       }
 
+      // checks if a move will be done
+      Boolean isMoveDone = false;
+
       if (selectedCell.getPieceName() == "rook") {
         if (isRookMoveAllowed(fromRow, fromCol, toRow, toCol)) {
           movePiece(fromRow, fromCol, toRow, toCol);
           selectedCell.setRectangleFill(selectedCell.getFieldColor());
           selectedCell = null;
-        } else {
-          System.out.print(" not a possible move ");
+          isMoveDone = true;
         }
       } else if (selectedCell.getPieceName() == "pawn") {
         if (isPawnMoveAllowed(fromRow, fromCol, toRow, toCol)) {
           movePiece(fromRow, fromCol, toRow, toCol);
           selectedCell.setRectangleFill(selectedCell.getFieldColor());
           selectedCell = null;
-        } else {
-          System.out.print(" not a possible move ");
+          isMoveDone = true;
         }
+
       } else if (selectedCell.getPieceName() == "bishop") {
         if (isBishopMoveAllowed(fromRow, fromCol, toRow, toCol)) {
           movePiece(fromRow, fromCol, toRow, toCol);
           selectedCell.setRectangleFill(selectedCell.getFieldColor());
           selectedCell = null;
-        } else {
-          System.out.print(" not a possible move ");
+          isMoveDone = true;
         }
       } else if (selectedCell.getPieceName() == "knight") {
         if (isKnightMoveAllowed(fromRow, fromCol, toRow, toCol)) {
           movePiece(fromRow, fromCol, toRow, toCol);
           selectedCell.setRectangleFill(selectedCell.getFieldColor());
           selectedCell = null;
-        } else {
-          System.out.print(" not a possible move ");
+          isMoveDone = true;
         }
       } else if (selectedCell.getPieceName() == "king") {
         if (isKingMoveAllowed(fromRow, fromCol, toRow, toCol)) {
           movePiece(fromRow, fromCol, toRow, toCol);
           selectedCell.setRectangleFill(selectedCell.getFieldColor());
           selectedCell = null;
-        } else {
-          System.out.print(" not a possible move ");
+          isMoveDone = true;
         }
       } else if (selectedCell.getPieceName() == "queen") {
         if (isQueenMoveAllowed(fromRow, fromCol, toRow, toCol)) {
           movePiece(fromRow, fromCol, toRow, toCol);
           selectedCell.setRectangleFill(selectedCell.getFieldColor());
           selectedCell = null;
-        } else {
-          selectedCell.setRectangleFill(currentCell.getFieldColor()); // deselect the piece
-          selectedCell = null;
-          System.out.print(" not a possible move ");
+          isMoveDone = true;
         }
+      }
+      // deselectes the piece
+      if (isMoveDone == false) {
+        selectedCell.setRectangleFill(selectedCell.getFieldColor());
+        selectedCell = null;
+        System.out.println("Not a possible move");
       }
     }
   }
