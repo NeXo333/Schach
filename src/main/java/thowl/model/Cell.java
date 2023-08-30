@@ -21,6 +21,9 @@ public class Cell extends StackPane {
   private ImageView pieceImageView;
   private Rectangle background;
 
+  private final int cellCount = 8;
+
+
   // Creation of a cell for every cell on the board and controlling it with a big cell[][] for
   // movements and changes
   public Cell(
@@ -64,6 +67,7 @@ public class Cell extends StackPane {
     return;
   }
 
+  public int getCellCount(){return cellCount;}
   public int getRow() {
     return row;
   }

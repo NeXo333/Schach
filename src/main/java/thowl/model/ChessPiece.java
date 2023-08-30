@@ -34,7 +34,6 @@ public class ChessPiece {
    * reposition the piece).
    *
    * @param cell
-   * @param pieceName
    * @param fromRow
    * @param fromCol
    * @param toRow
@@ -262,6 +261,7 @@ public class ChessPiece {
     // Rook can move horizontally or vertically
     if (fromRow == toRow || fromCol == toCol) {
       // Check if there are any pieces in the path between from and to positions
+
       // If moving horizontally
       if (fromRow == toRow) {
         int startCol = Math.min(fromCol, toCol) + 1;
@@ -273,6 +273,7 @@ public class ChessPiece {
           }
         }
       }
+
       // If moving vertically
       if (fromCol == toCol) {
         int startRow = Math.min(fromRow, toRow) + 1;
@@ -284,6 +285,7 @@ public class ChessPiece {
           }
         }
       }
+
       // Destination cell should be either empty or occupied by opponent's piece
       if (cell[toRow][toCol].isEmpty()
           || (cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor())) {
@@ -385,4 +387,15 @@ public class ChessPiece {
 
     return false;
   }
+  // hardcoded numbers bad should be altered
+  public void showAllpossibleMoves(Cell[][] cell, int fromRow, int fromCol){
+    for(int j =0;j<8;j++) {
+      for (int i = 0; i < 8; i++) {
+        if( isMoveAllowed(cell, fromRow, fromCol, i, j)){
+          cell[i][j].setRectangleFill(Color.LIGHTYELLOW);
+        }
+      }
+    }
+  }
+
 }

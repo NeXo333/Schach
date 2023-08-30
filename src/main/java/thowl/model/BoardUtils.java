@@ -12,8 +12,10 @@ import javafx.scene.paint.Color;
  */
 public class BoardUtils {
 
-  public int cellSize = 70;
-  public Cell[][] cell = new Cell[8][8];
+  public final int cellSize = 70;
+  private final int cellCount = 8;
+
+  public Cell[][] cell = new Cell[cellCount][cellCount];
   private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
   private Cell selectedCell = null;
 
@@ -31,8 +33,8 @@ public class BoardUtils {
     chessboard.setPadding(new javafx.geometry.Insets(10));
 
     // Create empty cells for the rest of the chessboard
-    for (int row = 0; row < 8; row++) {
-      for (int col = 0; col < 8; col++) {
+    for (int row = 0; row < cellCount; row++) {
+      for (int col = 0; col < cellCount; col++) {
         Color cellColor = (row + col) % 2 == 0 ? Color.LIGHTGRAY : Color.WHITE;
         cell[row][col] = new Cell(row, col, cellSize, cellColor, null, null, null);
 
@@ -89,7 +91,12 @@ public class BoardUtils {
 
         // Highlight the selected cell by changing its background color
         currentCell.setRectangleFill(Color.YELLOW);
+
+        //Highlight the possible moves in lightyellow
+        chessPiece.showAllpossibleMoves(cell, selectedCell.getRow(), selectedCell.getCol());
+
       }
+
     } else {
       // Second click: Move the piece to the clicked cell
       fromRow = selectedCell.getRow();
@@ -99,7 +106,8 @@ public class BoardUtils {
       // exit method if wrong color tries to move
       if (selectedCell.getPieceColor() != chessPiece.getCurrentTurnColor()) {
         System.out.print("It's not your turn. "); // Inform the player
-        selectedCell.setRectangleFill(selectedCell.getFieldColor());
+        //resets all Field colouring
+        clearFieldColor();
         selectedCell = null;
 
         return; // Exit the function without making any move
@@ -107,16 +115,27 @@ public class BoardUtils {
 
       if (chessPiece.isMoveAllowed(cell, fromRow, fromCol, toRow, toCol)) {
         chessPiece.movePiece(cell, fromRow, fromCol, toRow, toCol);
-        selectedCell.setRectangleFill(selectedCell.getFieldColor());
+        clearFieldColor();
         selectedCell = null;
-      } else { // deselects the piece if the move was not possible
+      } else {
+        // deselects the piece if the move was not possible
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
+        clearFieldColor();
         selectedCell = null;
         System.out.println("Not a possible move");
       }
     }
   }
 
+
+  private void clearFieldColor(){
+    for(int i=0; i<cellCount; i++){
+      for(int j=0;j<cellCount;j++){
+        System.out.println(i+ " " + j);
+        cell[j][i].setRectangleFill(cell[i][j].getFieldColor());
+      }
+    }
+  }
   private void startPosition() {
     // white rook
     Image pieceImage = new Image(getClass().getResourceAsStream("/images/whiteRook.png"));
