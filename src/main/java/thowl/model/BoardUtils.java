@@ -11,6 +11,7 @@ import javafx.scene.paint.Color;
  * (App.java)
  */
 public class BoardUtils {
+
   public int cellSize = 70;
   public Cell[][] cell = new Cell[8][8];
   private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
@@ -100,13 +101,11 @@ public class BoardUtils {
         System.out.print("It's not your turn. "); // Inform the player
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
         selectedCell = null;
+
         return; // Exit the function without making any move
       }
 
-      // checks if it is a valid move
-      String pieceName = selectedCell.getPieceName(); // first clicked cell (piece to move)
-
-      if (chessPiece.isMoveAllowed(cell, pieceName, fromRow, fromCol, toRow, toCol)) {
+      if (chessPiece.isMoveAllowed(cell, fromRow, fromCol, toRow, toCol)) {
         chessPiece.movePiece(cell, fromRow, fromCol, toRow, toCol);
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
         selectedCell = null;

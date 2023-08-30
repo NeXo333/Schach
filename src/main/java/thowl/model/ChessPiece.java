@@ -1,7 +1,13 @@
 package thowl.model;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 public class ChessPiece {
 
@@ -15,7 +21,9 @@ public class ChessPiece {
   // TODO:
   /*  Could be a void function which prints either : no / check / checkmate.
   Inserted inside movePiece for example but needs to check for every enemy piece not only the last move */
-  public Boolean isKinginCheck() {
+  public boolean isOwnKingInCheck(Cell[][] cell, int kingRow, int kingCol) {
+
+    // Your king is not in check
     return false;
   }
 
@@ -33,8 +41,8 @@ public class ChessPiece {
    * @param toCol
    * @return
    */
-  public boolean isMoveAllowed(
-      Cell[][] cell, String pieceName, int fromRow, int fromCol, int toRow, int toCol) {
+  public boolean isMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
+    String pieceName = cell[fromRow][fromCol].getPieceName();
     switch (pieceName) {
       case "pawn":
         return isPawnMoveAllowed(cell, fromRow, fromCol, toRow, toCol);
@@ -106,6 +114,86 @@ public class ChessPiece {
               + " takes "
               + pieceKilled);
     }
+    // Check for pawn promotion
+    if (cell[toRow][toCol].getPieceName() == "pawn" && (toRow == 0 || toRow == 7)) {
+      System.out.println(" Change to another piece ");
+      openPromotionDialog(cell, pieceColor, toRow, toCol);
+    }
+  }
+
+  // Creates the window for choosing a new Piece and calls the PromotoButton class as eventhandler
+  public void openPromotionDialog(Cell[][] cell, Color pieceColor, int toRow, int toCol) {
+    ImageView queen = new ImageView();
+    ImageView rook = new ImageView();
+    ImageView bishop = new ImageView();
+    ImageView knight = new ImageView();
+
+    // white pieces
+    if (pieceColor == Color.WHITE) {
+      Image queenImage = new Image(getClass().getResourceAsStream("/images/whiteQueen.png"));
+      queen.setImage(queenImage);
+
+      Image rookImage = new Image(getClass().getResourceAsStream("/images/whiteRook.png"));
+      rook.setImage(rookImage);
+
+      Image bishopImage = new Image(getClass().getResourceAsStream("/images/whiteBishop.png"));
+      bishop.setImage(bishopImage);
+
+      Image knightImage = new Image(getClass().getResourceAsStream("/images/whiteknight.png"));
+      knight.setImage(knightImage);
+    } else {
+      // black pieces
+      Image queenImage = new Image(getClass().getResourceAsStream("/images/blackQueen.png"));
+      queen.setImage(queenImage);
+
+      Image rookImage = new Image(getClass().getResourceAsStream("/images/blackRook.png"));
+      rook.setImage(rookImage);
+
+      Image bishopImage = new Image(getClass().getResourceAsStream("/images/blackBishop.png"));
+      bishop.setImage(bishopImage);
+
+      Image knightImage = new Image(getClass().getResourceAsStream("/images/blackknight.png"));
+      knight.setImage(knightImage);
+    }
+
+    // box for choosing to which piece the pawn is promoted
+    HBox buttonsBox =
+        new HBox(
+            new PromoteButton(queen, cell, toRow, toCol, pieceColor, "queen"),
+            new PromoteButton(rook, cell, toRow, toCol, pieceColor, "rook"),
+            new PromoteButton(bishop, cell, toRow, toCol, pieceColor, "bishop"),
+            new PromoteButton(knight, cell, toRow, toCol, pieceColor, "knight"));
+
+    // Window for choosing the new piece
+    Alert promotionAlert = new Alert(AlertType.NONE);
+    promotionAlert.setTitle("Pawn Promotion");
+    promotionAlert.setHeaderText("Choose a piece to promote your pawn:");
+
+    // Set content and buttons
+    promotionAlert.getDialogPane().setContent(buttonsBox);
+    ButtonType applyButtonType = new ButtonType("Apply");
+    promotionAlert.getButtonTypes().add(applyButtonType);
+
+    // Disables close button (X button)
+    Stage stage = (Stage) promotionAlert.getDialogPane().getScene().getWindow();
+    stage.setOnCloseRequest(e -> e.consume());
+    promotionAlert.showAndWait();
+  }
+
+  // Called by the eventhandler in PromoteButton and sets the chosen piece on the board
+  public void promotePawn(Cell[][] cell, int toRow, int toCol, Color pieceColor, String pieceName) {
+    String capitalizedPieceName = pieceName.substring(0, 1).toUpperCase() + pieceName.substring(1);
+
+    String imagePath;
+    if (pieceColor == Color.WHITE) {
+      imagePath = "/images/white" + capitalizedPieceName + ".png";
+
+    } else {
+      imagePath = "/images/black" + capitalizedPieceName + ".png";
+    }
+    Image image = new Image(getClass().getResourceAsStream(imagePath));
+    cell[toRow][toCol].setPieceValues(pieceColor, pieceName, image);
+    System.out.println("Pawn promoted to:  " + pieceName);
   }
 
   public Boolean isPawnMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
@@ -174,7 +262,6 @@ public class ChessPiece {
     // Rook can move horizontally or vertically
     if (fromRow == toRow || fromCol == toCol) {
       // Check if there are any pieces in the path between from and to positions
-
       // If moving horizontally
       if (fromRow == toRow) {
         int startCol = Math.min(fromCol, toCol) + 1;
@@ -186,7 +273,6 @@ public class ChessPiece {
           }
         }
       }
-
       // If moving vertically
       if (fromCol == toCol) {
         int startRow = Math.min(fromRow, toRow) + 1;
@@ -198,7 +284,6 @@ public class ChessPiece {
           }
         }
       }
-
       // Destination cell should be either empty or occupied by opponent's piece
       if (cell[toRow][toCol].isEmpty()
           || (cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor())) {
