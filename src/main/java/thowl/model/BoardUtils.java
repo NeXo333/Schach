@@ -16,8 +16,9 @@ public class BoardUtils {
   private final int cellCount = 8;
 
   public Cell[][] cell = new Cell[cellCount][cellCount];
-  private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
   private Cell selectedCell = null;
+
+  private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
 
   /**
    * Creates the colored boared and calls method addIndices for the details
@@ -113,9 +114,8 @@ public class BoardUtils {
         }
         else{return;}
 
-        //Highlight the possible moves in lightyellow
+        // Highlight the possible moves in lightyellow
         chessPiece.showAllpossibleMoves(cell, selectedCell.getRow(), selectedCell.getCol());
-
       }
 
     } else {
@@ -127,7 +127,7 @@ public class BoardUtils {
       // exit method if wrong color tries to move
       if (selectedCell.getPieceColor() != chessPiece.getCurrentTurnColor()) {
         System.out.print("It's not your turn. "); // Inform the player
-        //resets all Field colouring
+        // resets all Field colouring
         clearFieldColor();
         selectedCell = null;
 
@@ -135,28 +135,42 @@ public class BoardUtils {
       }
 
       if (chessPiece.isMoveAllowed(cell, fromRow, fromCol, toRow, toCol)) {
-        chessPiece.movePiece(cell, fromRow, fromCol, toRow, toCol);
-        clearFieldColor();
-        selectedCell = null;
+        // when move would put own king into check than error
+        if (!chessPiece.MovesOwnKingIntoCheck(cell, fromRow, fromCol, toRow, toCol)) {
+          chessPiece.movePiece(cell, fromRow, fromCol, toRow, toCol);
+          // Check for pawn promotion (pawn at end row)
+          if (cell[toRow][toCol].getPieceName() == "pawn" && (toRow == 0 || toRow == 7)) {
+            chessPiece.openPromotionDialog(cell, cell[toRow][toCol].getPieceColor(), toRow, toCol);
+            System.out.println("pawn changed to " + cell[toRow][toCol].getPieceName());
+          }
+          clearFieldColor();
+          selectedCell = null;
+          // nextMove += 1;
+        } else {
+          // deselects the piece if the move was not possible
+          selectedCell.setRectangleFill(selectedCell.getFieldColor());
+          clearFieldColor();
+          selectedCell = null;
+          System.out.print("Not a possible move ");
+        }
       } else {
         // deselects the piece if the move was not possible
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
         clearFieldColor();
         selectedCell = null;
-        System.out.println("Not a possible move");
+        System.out.print("Not a possible move ");
       }
     }
   }
 
-
-  private void clearFieldColor(){
-    for(int i=0; i<cellCount; i++){
-      for(int j=0;j<cellCount;j++){
-        System.out.println(i+ " " + j);
+  private void clearFieldColor() {
+    for (int i = 0; i < cellCount; i++) {
+      for (int j = 0; j < cellCount; j++) {
         cell[j][i].setRectangleFill(cell[i][j].getFieldColor());
       }
     }
   }
+
   private void startPosition() {
     // white rook
     Image pieceImage = new Image(getClass().getResourceAsStream("/images/whiteRook.png"));
