@@ -77,6 +77,24 @@ public class BoardUtils {
       chessboard.add(colIndex, col + 1, 0);
     }
   }
+  //Is used to enabel or disable the handleCellClick Funktion via the Gui and the buttons.
+  public class MovesCheck {
+    private static int wert;
+
+    public MovesCheck() {
+          //
+    }
+
+    public static void setWert(int neuerWert) {
+        wert = neuerWert;
+    }
+
+    public static int getWert() {
+        return wert;
+    }
+}
+
+
 
   public void handleCellClick(Cell currentCell) {
     int fromRow;
@@ -86,11 +104,14 @@ public class BoardUtils {
 
     if (selectedCell == null) {
       // First click: Select the piece to move
-      if (currentCell.getPieceName() != null) {
+      if (currentCell.getPieceName() != null ) {
         selectedCell = currentCell;
 
-        // Highlight the selected cell by changing its background color
+        // Highlight the selected cell by changing its background color if its enabled by the user in the Starting Gui.
+        if (MovesCheck.wert == 1){
         currentCell.setRectangleFill(Color.YELLOW);
+        }
+        else{return;}
 
         //Highlight the possible moves in lightyellow
         chessPiece.showAllpossibleMoves(cell, selectedCell.getRow(), selectedCell.getCol());
