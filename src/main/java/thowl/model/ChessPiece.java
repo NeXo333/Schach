@@ -2,6 +2,7 @@ package thowl.model;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -11,12 +12,22 @@ import javafx.stage.Stage;
 
 public class ChessPiece {
 
-  private Color currentTurnColor = Color.WHITE; // Game starts for white
+  public Color currentTurnColor = Color.WHITE; // Game starts for white
 
-  // for en Passant
-  private int nextMove = 0; // only next move allowed for enPassant
+  // for en passant
+  public int nextMove = 0; // only next move allowed for enPassant
   private int lastMovedPawnRow; // remember last pawn that made to 2 cell steps
   private int lastMovedPawnCol;
+
+  // for castling (white left rook == The left rook from white king POV)
+  // when a piece moved castling no longer possible
+  public Boolean whiteLeftRookNotMoved = true;
+  public Boolean whiteRightRookNotMoved = true;
+  public Boolean whiteKingNotMoved = true;
+
+  public Boolean blackLeftRookNotMoved = true;
+  public Boolean blackRightRookNotMoved = true;
+  public Boolean blackKingNotMoved = true;
 
   // for king in check
   private int whiteKingRow = 0;
@@ -24,14 +35,73 @@ public class ChessPiece {
   private int blackKingRow = 7;
   private int blackKingCol = 3;
 
-  // Add a getter method for currentTurnColor
-  public Color getCurrentTurnColor() {
-    return currentTurnColor;
+  // TODO: update if a piece moved. Called after every move when cell[fromRow][fromCol].getPieceName
+  // == rook or king
+  // movepiece
+  public Boolean RookOrKindMoved(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
+    if (fromRow == 0 && fromCol == 0) {
+      whiteRightRookNotMoved = false;
+    } else if (fromRow == 0 && fromCol == 7) {
+      whiteLeftRookNotMoved = false;
+    } else if (fromRow == 0 && (fromCol == 3) && !(toCol == 1 || toCol == 5)) {
+      whiteKingNotMoved = false;
+    }
+
+    if (fromRow == 7 && fromCol == 0) {
+      blackLeftRookNotMoved = false;
+    } else if (fromRow == 7 && fromCol == 7) {
+      blackRightRookNotMoved = false;
+    } else if (fromRow == 7 && (fromCol == 3) && !(toCol == 1 || toCol == 5)) {
+      blackKingNotMoved = false;
+    }
+
+    return true;
+  }
+
+  public Boolean isKingMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
+    int rowDistance = Math.abs(toRow - fromRow);
+    int colDistance = Math.abs(toCol - fromCol);
+
+    // King can move one square in any direction
+    if (rowDistance <= 1 && colDistance <= 1) {
+      // Check if the destination cell is empty or occupied by an opponent's piece
+      if (cell[toRow][toCol].isEmpty()
+          || cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor()) {
+        return true;
+      }
+    }
+
+    // TODO: look if castling possible.
+    if ((fromRow == 0 || fromRow == 7) && (toCol == 1 || toCol == 5)) {
+      if ((fromRow == 0 && fromCol == 3)
+          && (toRow == 0 && toCol == 1)
+          && whiteKingNotMoved
+          && whiteRightRookNotMoved
+          && (cell[0][1].isEmpty() && cell[0][2].isEmpty())) {
+        // look later for if in check and if attacked
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /*  Creates a copy of the game field (necessary for check/ checkmate and castling to see,
+  if the moves are possible */
+  public void copyGameField(Cell[][] source, Cell[][] destination) {
+    for (int row = 0; row < 8; row++) {
+      for (int col = 0; col < 8; col++) {
+        Color fieldColor = source[row][col].getFieldColor();
+        Color pieceColor = source[row][col].getPieceColor();
+        String pieceName = source[row][col].getPieceName();
+        destination[row][col] = new Cell(row, col, 70, fieldColor, pieceColor, pieceName, null);
+      }
+    }
   }
 
   // WHEN USING THIS METHOD USE FIRST: CELL[FROMROW][TOCOL].GETPIECENAME() == KING
   // stores Kings position and is important for check
-  public void KingPositionStorage(Color color, int toRow, int toCol) {
+  public void kingPositionStorage(Color color, int toRow, int toCol) {
     if (color == Color.WHITE) {
       whiteKingRow = toRow;
       whiteKingCol = toCol;
@@ -43,24 +113,28 @@ public class ChessPiece {
   }
 
   // checks if your move puts your own King into check
-  public boolean MovesOwnKingIntoCheck(
-      Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
+  public boolean iskingInCheck(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     Cell[][] copy = new Cell[8][8];
 
-    // Copy the contents of the original cell array to the copy array
-    for (int row = 0; row < 8; row++) {
-      for (int col = 0; col < 8; col++) {
-        Color fieldColor = cell[row][col].getFieldColor();
-        Color pieceColor = cell[row][col].getPieceColor();
-        String pieceName = cell[row][col].getPieceName();
-        copy[row][col] = new Cell(row, col, 70, fieldColor, pieceColor, pieceName, null);
+    copyGameField(cell, copy);
+
+    int oldWhiteKingRow = whiteKingRow;
+    int oldWhiteKingCol = whiteKingCol;
+    int oldBlackKingRow = blackKingRow;
+    int oldBlackKingCol = blackKingCol;
+    Boolean isKing = false;
+    if (copy[fromRow][fromCol].getPieceName() == "king") {
+      // (Could also be using the method KingStorage)
+      isKing = true;
+      if (currentTurnColor == Color.WHITE) {
+        whiteKingCol = toRow;
+        whiteKingRow = toCol;
+      } else if (currentTurnColor == Color.BLACK) {
+        blackKingRow = toRow;
+        blackKingCol = toCol;
       }
     }
     movePiece(copy, fromRow, fromCol, toRow, toCol);
-
-    // Undo the color change and the move made counter
-    currentTurnColor = (currentTurnColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
-    nextMove -= 1;
 
     int kingRow = (currentTurnColor == Color.WHITE) ? whiteKingRow : blackKingRow;
     int kingCol = (currentTurnColor == Color.WHITE) ? whiteKingCol : blackKingCol;
@@ -69,13 +143,61 @@ public class ChessPiece {
       for (int col = 0; col < 8; col++) {
         if (currentTurnColor == Color.WHITE) {
           if (copy[row][col].getPieceColor() == Color.BLACK) {
+            if (isKing && isMoveAllowed(copy, row, col, whiteKingRow, whiteKingCol)) {
+              // reset the vars
+              isKing = false;
+              whiteKingRow = oldWhiteKingRow;
+              whiteKingCol = oldWhiteKingCol;
+              return true;
+            }
             if (isMoveAllowed(copy, row, col, kingRow, kingCol)) {
+              // maybe set a var
               return true;
             }
           }
         } else if (currentTurnColor == Color.BLACK) {
           if (copy[row][col].getPieceColor() == Color.WHITE) {
+            if (isKing && isMoveAllowed(copy, row, col, blackKingRow, blackKingCol)) {
+              // reset the vars
+              isKing = false;
+              blackKingRow = oldBlackKingRow;
+              blackKingCol = oldBlackKingCol;
+              return true;
+            }
             if (isMoveAllowed(copy, row, col, kingRow, kingCol)) {
+              //
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    isKing = false;
+    whiteKingRow = oldWhiteKingRow;
+    whiteKingCol = oldWhiteKingCol;
+    blackKingRow = oldBlackKingRow;
+    blackKingCol = oldBlackKingCol;
+    return false;
+  }
+
+  public Boolean isCheck(Cell[][] cell) {
+    // change color to the other player
+    currentTurnColor = (currentTurnColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
+    int kingRow = (currentTurnColor == Color.WHITE) ? whiteKingRow : blackKingRow;
+    int kingCol = (currentTurnColor == Color.WHITE) ? whiteKingCol : blackKingCol;
+
+    for (int row = 0; row < 8; row++) {
+      for (int col = 0; col < 8; col++) {
+        if (currentTurnColor == Color.WHITE) {
+          if (cell[row][col].getPieceColor() == Color.BLACK) {
+            if (isMoveAllowed(cell, row, col, kingRow, kingCol)) {
+              return true;
+            }
+          }
+        } else if (currentTurnColor == Color.BLACK) {
+          if (cell[row][col].getPieceColor() == Color.WHITE) {
+            if (isMoveAllowed(cell, row, col, kingRow, kingCol)) {
               return true;
             }
           }
@@ -84,6 +206,29 @@ public class ChessPiece {
     }
 
     return false;
+  }
+
+  public Boolean isCheckmate(Cell[][] cell) {
+    Cell[][] copy = new Cell[8][8];
+    copyGameField(cell, copy);
+
+    for (int fromRow = 0; fromRow < 8; fromRow++) {
+      for (int fromCol = 0; fromCol < 8; fromCol++) {
+        if (copy[fromRow][fromCol].getPieceColor() == currentTurnColor) {
+          for (int toRow = 0; toRow < 8; toRow++) {
+            for (int toCol = 0; toCol < 8; toCol++) {
+              if (isMoveAllowed(copy, fromRow, fromCol, toRow, toCol)) {
+                // is there a move which puts the king out of check? if yes then return false
+                if (!iskingInCheck(copy, fromRow, fromCol, toRow, toCol)) {
+                  return false;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return true;
   }
 
   /**
@@ -101,6 +246,9 @@ public class ChessPiece {
    */
   public boolean isMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     String pieceName = cell[fromRow][fromCol].getPieceName();
+    if (pieceName == null) {
+      return false;
+    }
     switch (pieceName) {
       case "pawn":
         return isPawnMoveAllowed(cell, fromRow, fromCol, toRow, toCol);
@@ -134,31 +282,30 @@ public class ChessPiece {
     String pieceName = cell[fromRow][fromCol].getPieceName();
     Image pieceImage = cell[fromRow][fromCol].getPieceImage();
 
+    // check for enPassant
+    if (pieceName == "pawn" && isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
+      executeEnPassant(cell, toRow, toCol);
+    }
+
     // Clear the piece values in the source cell
     cell[fromRow][fromCol].clearPiece();
 
     // Set the piece values in the destination cell
     cell[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
+  }
 
-    // stores Kings position (needed for kingInCheck)
-    if (pieceName == "king") {
-      KingPositionStorage(pieceColor, toRow, toCol);
+  public class PromoteButton extends Button {
+
+    ChessPiece newPiece = new ChessPiece();
+
+    public PromoteButton(
+        ImageView icon, Cell[][] cell, int toRow, int toCol, Color pieceColor, String pieceName) {
+      setGraphic(icon);
+      setOnAction(
+          event -> {
+            newPiece.promotePawn(cell, toRow, toCol, pieceColor, pieceName);
+          });
     }
-
-    /* Execute enPassant (need now to be here because coloring possible moves would execute it,
-    if it would be inside of pawnMoveAllowed (Possible TODO: one method that checks for both
-    special moves, like rochade and enPassant */
-    if (pieceName == "pawn" && nextMove == 1) {
-      if (pieceColor == Color.WHITE) {
-        cell[toRow - 1][toCol].clearPiece();
-      } else if (pieceColor == Color.BLACK) {
-        cell[toRow + 1][toCol].clearPiece();
-      }
-    }
-    nextMove += 1; // en Passant only possible in the following move
-
-    // Update the current turn's color
-    currentTurnColor = (currentTurnColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
   }
 
   // Creates the window for choosing a new Piece and calls the PromotoButton class as eventhandler
@@ -244,62 +391,45 @@ public class ChessPiece {
     }
 
     if (oldCell.getPieceColor() == Color.WHITE) {
-
-      // true: trying to move forward. false: trying to hit.
       if (fromCol == toCol) {
-
-        // one cell forward
-        if ((fromRow - toRow == -1) && newCell.isEmpty()) {
-          return true;
+        if (fromRow - toRow == -1 && newCell.isEmpty()) {
+          return true; // One cell forward
         }
-        // two cells forward
-        if ((fromRow == 1 && toRow == 3) && cell[2][toCol].isEmpty() && newCell.isEmpty()) {
+        if (fromRow == 1 && toRow == 3 && cell[2][toCol].isEmpty() && newCell.isEmpty()) {
           nextMove = 0;
           lastMovedPawnRow = toRow;
           lastMovedPawnCol = toCol;
-          return true;
+          return true; // Two cells forward
         }
-        // hit (left or right)
-      } else if (((fromCol - toCol == -1) || (fromCol - toCol == 1))
-          && (fromRow - toRow == -1)
-          && newCell.getPieceColor() == Color.BLACK) {
-        return true;
+      } else if ((fromCol - toCol == -1 || fromCol - toCol == 1) && fromRow - toRow == -1) {
+        if (newCell.getPieceColor() == Color.BLACK
+            || isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
+          return true; // Hit (left or right)
+        }
       }
-
-      // black moves
     } else {
-      // true: trying to move forward. false: trying to hit.
       if (fromCol == toCol) {
-
-        // one cell forward
-        if ((fromRow - toRow == 1) && newCell.isEmpty()) {
-          return true;
+        if (fromRow - toRow == 1 && newCell.isEmpty()) {
+          return true; // One cell forward
         }
-        // two cells forward
-        if ((fromRow == 6 && toRow == 4) && cell[5][toCol].isEmpty() && newCell.isEmpty()) {
+        if (fromRow == 6 && toRow == 4 && cell[5][toCol].isEmpty() && newCell.isEmpty()) {
           nextMove = 0;
           lastMovedPawnRow = toRow;
           lastMovedPawnCol = toCol;
-          return true;
+          return true; // Two cells forward
         }
-
-        // hit (left or right)
-      } else if (((fromCol - toCol == 1) || (fromCol - toCol == -1))
-          && (fromRow - toRow == 1)
-          && newCell.getPieceColor() == Color.WHITE) {
-        return true;
+      } else if ((fromCol - toCol == 1 || fromCol - toCol == -1) && fromRow - toRow == 1) {
+        if (newCell.getPieceColor() == Color.WHITE
+            || isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
+          return true; // Hit (left or right)
+        }
       }
-    }
-    // look for enPassant
-    if (enPassant(cell, currentTurnColor, fromRow, fromCol, toRow, toCol)) {
-      return true;
     }
     return false;
   }
 
   // checks if enPassant is possible
-  public Boolean enPassant(
-      Cell[][] cell, Color currentTurnColor, int fromRow, int fromCol, int toRow, int toCol) {
+  public Boolean isEnPassant(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     if (currentTurnColor == Color.WHITE) {
       if (fromRow == 4
           && nextMove == 1
@@ -316,6 +446,14 @@ public class ChessPiece {
       }
     }
     return false;
+  }
+
+  public void executeEnPassant(Cell[][] cell, int toRow, int toCol) {
+    if (currentTurnColor == Color.WHITE) {
+      cell[toRow - 1][toCol].clearPiece();
+    } else {
+      cell[toRow + 1][toCol].clearPiece();
+    }
   }
 
   /**
@@ -415,22 +553,6 @@ public class ChessPiece {
     }
 
     return false; // Invalid move
-  }
-
-  public Boolean isKingMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
-    int rowDistance = Math.abs(toRow - fromRow);
-    int colDistance = Math.abs(toCol - fromCol);
-
-    // King can move one square in any direction
-    if (rowDistance <= 1 && colDistance <= 1) {
-      // Check if the destination cell is empty or occupied by an opponent's piece
-      if (cell[toRow][toCol].isEmpty()
-          || cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor()) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   public Boolean isQueenMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {

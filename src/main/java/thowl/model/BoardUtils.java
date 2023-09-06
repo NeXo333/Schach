@@ -78,24 +78,23 @@ public class BoardUtils {
       chessboard.add(colIndex, col + 1, 0);
     }
   }
-  //Is used to enabel or disable the handleCellClick Funktion via the Gui and the buttons.
+
+  // Is used to enabel or disable the handleCellClick Funktion via the Gui and the buttons.
   public class MovesCheck {
     private static int wert;
 
     public MovesCheck() {
-          //
+      //
     }
 
     public static void setWert(int neuerWert) {
-        wert = neuerWert;
+      wert = neuerWert;
     }
 
     public static int getWert() {
-        return wert;
+      return wert;
     }
-}
-
-
+  }
 
   public void handleCellClick(Cell currentCell) {
     int fromRow;
@@ -105,14 +104,16 @@ public class BoardUtils {
 
     if (selectedCell == null) {
       // First click: Select the piece to move
-      if (currentCell.getPieceName() != null ) {
+      if (currentCell.getPieceName() != null) {
         selectedCell = currentCell;
 
-        // Highlight the selected cell by changing its background color if its enabled by the user in the Starting Gui.
-        if (MovesCheck.wert == 1){
-        currentCell.setRectangleFill(Color.YELLOW);
+        // Highlight the selected cell by changing its background color if its enabled by the user
+        // in the Starting Gui.
+        if (MovesCheck.wert == 1) {
+          currentCell.setRectangleFill(Color.YELLOW);
+        } else {
+          return;
         }
-        else{return;}
 
         // Highlight the possible moves in lightyellow
         chessPiece.showAllpossibleMoves(cell, selectedCell.getRow(), selectedCell.getCol());
@@ -125,7 +126,7 @@ public class BoardUtils {
       toRow = currentCell.getRow();
       toCol = currentCell.getCol();
       // exit method if wrong color tries to move
-      if (selectedCell.getPieceColor() != chessPiece.getCurrentTurnColor()) {
+      if (selectedCell.getPieceColor() != chessPiece.currentTurnColor) {
         System.out.print("It's not your turn. "); // Inform the player
         // resets all Field colouring
         clearFieldColor();
@@ -136,9 +137,29 @@ public class BoardUtils {
 
       if (chessPiece.isMoveAllowed(cell, fromRow, fromCol, toRow, toCol)) {
         // when move would put own king into check than error
-        if (!chessPiece.MovesOwnKingIntoCheck(cell, fromRow, fromCol, toRow, toCol)) {
+        if (!chessPiece.iskingInCheck(cell, fromRow, fromCol, toRow, toCol)) {
+          if (cell[fromRow][fromCol].getPieceName() == "king") {
+            chessPiece.kingPositionStorage(chessPiece.currentTurnColor, toRow, toCol);
+          }
+
           chessPiece.movePiece(cell, fromRow, fromCol, toRow, toCol);
+
+          // testing for checkmate (Player change happen in isCheck)
+          if (chessPiece.isCheck(cell)) {
+            System.out.println("check");
+            if (chessPiece.isCheckmate(cell)) {
+              // TODO: make pop up window instead of printing to the terminal
+              if (chessPiece.currentTurnColor == Color.WHITE) {
+                System.out.println("CHECKMATE: BLACK WON");
+              } else if (chessPiece.currentTurnColor == Color.BLACK) {
+                System.out.println("CHECKMATE: WHITE WON");
+              }
+            }
+          }
+
+          // TODO: look for checkmate before choosing a piece (queen and knight if pawn at end row)
           // Check for pawn promotion (pawn at end row)
+          chessPiece.nextMove += 1;
           if (cell[toRow][toCol].getPieceName() == "pawn" && (toRow == 0 || toRow == 7)) {
             chessPiece.openPromotionDialog(cell, cell[toRow][toCol].getPieceColor(), toRow, toCol);
             System.out.println("pawn changed to " + cell[toRow][toCol].getPieceName());
@@ -151,14 +172,14 @@ public class BoardUtils {
           selectedCell.setRectangleFill(selectedCell.getFieldColor());
           clearFieldColor();
           selectedCell = null;
-          System.out.print("Not a possible move ");
+          System.out.print(" King in check ");
         }
       } else {
         // deselects the piece if the move was not possible
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
         clearFieldColor();
         selectedCell = null;
-        System.out.print("Not a possible move ");
+        System.out.print(" Not a possible move ");
       }
     }
   }
