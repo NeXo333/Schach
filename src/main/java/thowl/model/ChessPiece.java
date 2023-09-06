@@ -582,7 +582,43 @@ public class ChessPiece {
 
     return false;
   }
+  //hardcoded weil kein bock mehr
+  public boolean isCastleMoveAllowed(Cell[][] cell){
+    //checks the color of the piece
+    //white king side
+    if(currentTurnColor == Color.WHITE){
+      //checks if the king moved
+      if(whiteKingCol== 3 && whiteKingRow == 0 ){
+        //kingsidecastle
+        if(cell[0][0].getPieceName()=="rook" && cell[1][0].getPieceName()==null&& cell[2][0].getPieceName()==null){
+          //if(//hier muss geprüft werden ob die felder angegriffen werden)
+          return true;
+        }
+       //queensidecastle
+       if(cell[7][0].getPieceName()=="rook" && cell[1][0].getPieceName()==null&& cell[2][0].getPieceName()==null&& cell[4][0]== null){
+         //hier eine funktion die die leeren felder prüft ob sie angegriffen werden
+         return true;
+       }
+      }
 
+    }
+    //black king side
+    else{
+      if(blackKingCol== 3 && blackKingRow == 7 ){
+        //kingsidecastle
+        if(cell[0][7].getPieceName()=="rook" && cell[1][7].getPieceName()==null&& cell[2][7].getPieceName()==null){
+          //if(//hier muss geprüft werden ob die felder angegriffen werden)
+          return true;
+        }
+        //queensidecastle
+        if(cell[7][0].getPieceName()=="rook" && cell[1][7].getPieceName()==null&& cell[2][7].getPieceName()==null&& cell[4][7]== null){
+          //hier eine funktion die die leeren felder prüft ob sie angegriffen werden
+          return true;
+        }
+      }
+    }
+    return false;
+  }
   // hardcoded numbers bad should be altered
   public void showAllpossibleMoves(Cell[][] cell, int fromRow, int fromCol) {
     for (int j = 0; j < 8; j++) {

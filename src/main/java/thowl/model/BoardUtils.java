@@ -16,9 +16,10 @@ public class BoardUtils {
   private final int cellCount = 8;
 
   public Cell[][] cell = new Cell[cellCount][cellCount];
+  private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
   private Cell selectedCell = null;
 
-  private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
+ // private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
 
   /**
    * Creates the colored boared and calls method addIndices for the details
@@ -125,6 +126,7 @@ public class BoardUtils {
       fromCol = selectedCell.getCol();
       toRow = currentCell.getRow();
       toCol = currentCell.getCol();
+      System.out.println(toCol + " " + toRow);
       // exit method if wrong color tries to move
       if (selectedCell.getPieceColor() != chessPiece.currentTurnColor) {
         System.out.print("It's not your turn. "); // Inform the player
