@@ -107,8 +107,7 @@ public class ChessPiece {
 
         if (!isCellUnderAttack(cell, 0, 3)
             && !isCellUnderAttack(cell, 0, 4)
-            && !isCellUnderAttack(cell, 0, 5)
-            && !isCellUnderAttack(cell, 0, 6)) {
+            && !isCellUnderAttack(cell, 0, 5)) {
           whiteShortCastle = 2;
           return true;
         }
@@ -133,8 +132,7 @@ public class ChessPiece {
 
         if (!isCellUnderAttack(cell, 7, 3)
             && !isCellUnderAttack(cell, 7, 4)
-            && !isCellUnderAttack(cell, 7, 5)
-            && !isCellUnderAttack(cell, 7, 6)) {
+            && !isCellUnderAttack(cell, 7, 5)) {
           blackShortCastle = 2;
           return true;
         }
@@ -227,11 +225,11 @@ public class ChessPiece {
     movePiece(copy, fromRow, fromCol, toRow, toCol);
 
     if (pieceName == "king") {
-      // (Could also be using the method KingStorage)
       isKing = true;
+      // (Could also be using the method KingStorage)
       if (currentTurnColor == Color.WHITE) {
-        whiteKingCol = toRow;
-        whiteKingRow = toCol;
+        whiteKingRow = toRow;
+        whiteKingCol = toCol;
       } else if (currentTurnColor == Color.BLACK) {
         blackKingRow = toRow;
         blackKingCol = toCol;
@@ -274,12 +272,12 @@ public class ChessPiece {
         }
       }
     }
-
     isKing = false;
     whiteKingRow = oldWhiteKingRow;
     whiteKingCol = oldWhiteKingCol;
     blackKingRow = oldBlackKingRow;
     blackKingCol = oldBlackKingCol;
+
     return false;
   }
 

@@ -36,7 +36,7 @@ public class BoardUtils {
     // Create empty cells for the rest of the chessboard
     for (int row = 0; row < cellCount; row++) {
       for (int col = 0; col < cellCount; col++) {
-        Color cellColor = (row + col) % 2 == 0 ? Color.LIGHTGRAY : Color.WHITE;
+        Color cellColor = (row + col) % 2 == 0 ? Color.WHITE : Color.LIGHTGRAY;
         cell[row][col] = new Cell(row, col, cellSize, cellColor, null, null, null);
 
         // Set up the event handler for the cell
@@ -138,10 +138,18 @@ public class BoardUtils {
       if (chessPiece.isMoveAllowed(cell, fromRow, fromCol, toRow, toCol)) {
         // when move would put own king into check than error
         if (!chessPiece.iskingInCheck(cell, fromRow, fromCol, toRow, toCol)) {
+
           if (cell[fromRow][fromCol].getPieceName() == "king") {
             chessPiece.kingPositionStorage(chessPiece.currentTurnColor, toRow, toCol);
           }
-          // updates conditions for rochade (Rooks and kings unmoved)
+
+          // TODO: look for checkmate before choosing a piece (queen and knight if pawn at end row)
+          // Check for pawn promotion (pawn at end row)
+          chessPiece.nextMove += 1;
+          if (cell[toRow][toCol].getPieceName() == "pawn" && (toRow == 0 || toRow == 7)) {
+            chessPiece.openPromotionDialog(cell, cell[toRow][toCol].getPieceColor(), toRow, toCol);
+            System.out.println("pawn changed to " + cell[toRow][toCol].getPieceName());
+          }
 
           chessPiece.movePiece(cell, fromRow, fromCol, toRow, toCol);
 
@@ -161,14 +169,6 @@ public class BoardUtils {
                 System.out.println("CHECKMATE: WHITE WON");
               }
             }
-          }
-
-          // TODO: look for checkmate before choosing a piece (queen and knight if pawn at end row)
-          // Check for pawn promotion (pawn at end row)
-          chessPiece.nextMove += 1;
-          if (cell[toRow][toCol].getPieceName() == "pawn" && (toRow == 0 || toRow == 7)) {
-            chessPiece.openPromotionDialog(cell, cell[toRow][toCol].getPieceColor(), toRow, toCol);
-            System.out.println("pawn changed to " + cell[toRow][toCol].getPieceName());
           }
           clearFieldColor();
           selectedCell = null;
