@@ -24,10 +24,12 @@ public class ChessPiece {
   public Boolean whiteLeftRookNotMoved = true;
   public Boolean whiteRightRookNotMoved = true;
   public Boolean whiteKingNotMoved = true;
+  public int whiteShortCastle = 0; // 0 = no castle, 1 == short castle, 2 == long castle
 
   public Boolean blackLeftRookNotMoved = true;
   public Boolean blackRightRookNotMoved = true;
   public Boolean blackKingNotMoved = true;
+  public int blackShortCastle = 0; // 0 = no castle, 1 == short castle, 2 == long castle
 
   // for king in check
   private int whiteKingRow = 0;
@@ -35,27 +37,37 @@ public class ChessPiece {
   private int blackKingRow = 7;
   private int blackKingCol = 3;
 
+  public Color getCurrentTurnColor() {
+    if (currentTurnColor == Color.WHITE) {
+      return Color.WHITE;
+    } else {
+      return Color.BLACK;
+    }
+  }
+
   // TODO: update if a piece moved. Called after every move when cell[fromRow][fromCol].getPieceName
   // == rook or king
-  // movepiece
-  public Boolean RookOrKindMoved(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
-    if (fromRow == 0 && fromCol == 0) {
+  // after movepiece
+  public void RookOrKingMoved(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
+    if (fromRow == 0 && fromCol == 3) {
+      whiteKingNotMoved = false;
+      whiteLeftRookNotMoved = false;
+      whiteRightRookNotMoved = false;
+    } else if (fromRow == 0 && fromCol == 0) {
       whiteRightRookNotMoved = false;
     } else if (fromRow == 0 && fromCol == 7) {
       whiteLeftRookNotMoved = false;
-    } else if (fromRow == 0 && (fromCol == 3) && !(toCol == 1 || toCol == 5)) {
-      whiteKingNotMoved = false;
     }
 
-    if (fromRow == 7 && fromCol == 0) {
+    if (fromRow == 7 && fromCol == 3) {
+      blackKingNotMoved = false;
+      blackLeftRookNotMoved = false;
+      blackRightRookNotMoved = false;
+    } else if (fromRow == 7 && fromCol == 0) {
       blackLeftRookNotMoved = false;
     } else if (fromRow == 7 && fromCol == 7) {
       blackRightRookNotMoved = false;
-    } else if (fromRow == 7 && (fromCol == 3) && !(toCol == 1 || toCol == 5)) {
-      blackKingNotMoved = false;
     }
-
-    return true;
   }
 
   public Boolean isKingMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
@@ -72,14 +84,101 @@ public class ChessPiece {
     }
 
     // TODO: look if castling possible.
+    // King shouldnt be in check
     if ((fromRow == 0 || fromRow == 7) && (toCol == 1 || toCol == 5)) {
-      if ((fromRow == 0 && fromCol == 3)
+
+      if ((currentTurnColor == Color.WHITE)
+          && (fromRow == 0 && fromCol == 3)
           && (toRow == 0 && toCol == 1)
-          && whiteKingNotMoved
-          && whiteRightRookNotMoved
+          && (whiteKingNotMoved && whiteRightRookNotMoved)
           && (cell[0][1].isEmpty() && cell[0][2].isEmpty())) {
-        // look later for if in check and if attacked
-        return true;
+
+        if (!isCellUnderAttack(cell, 0, 1)
+            && !isCellUnderAttack(cell, 0, 2)
+            && !isCellUnderAttack(cell, 0, 3)) {
+          whiteShortCastle = 1;
+          return true;
+        }
+      } else if ((currentTurnColor == Color.WHITE)
+          && (fromRow == 0 && fromCol == 3)
+          && (toRow == 0 && toCol == 5)
+          && (whiteKingNotMoved && whiteLeftRookNotMoved)
+          && (cell[0][4].isEmpty() && cell[0][5].isEmpty() && cell[0][6].isEmpty())) {
+
+        if (!isCellUnderAttack(cell, 0, 3)
+            && !isCellUnderAttack(cell, 0, 4)
+            && !isCellUnderAttack(cell, 0, 5)
+            && !isCellUnderAttack(cell, 0, 6)) {
+          whiteShortCastle = 2;
+          return true;
+        }
+        // black Castling
+      } else if ((currentTurnColor == Color.BLACK)
+          && (fromRow == 7 && fromCol == 3)
+          && (toRow == 7 && toCol == 1)
+          && (blackKingNotMoved && blackLeftRookNotMoved)
+          && (cell[7][1].isEmpty() && cell[7][2].isEmpty())) {
+
+        if (!isCellUnderAttack(cell, 7, 1)
+            && !isCellUnderAttack(cell, 7, 2)
+            && !isCellUnderAttack(cell, 7, 3)) {
+          blackShortCastle = 1;
+          return true;
+        }
+      } else if ((currentTurnColor == Color.BLACK)
+          && (fromRow == 7 && fromCol == 3)
+          && (toRow == 7 && toCol == 5)
+          && (blackKingNotMoved && blackRightRookNotMoved)
+          && (cell[7][4].isEmpty() && cell[7][5].isEmpty() && cell[7][6].isEmpty())) {
+
+        if (!isCellUnderAttack(cell, 7, 3)
+            && !isCellUnderAttack(cell, 7, 4)
+            && !isCellUnderAttack(cell, 7, 5)
+            && !isCellUnderAttack(cell, 7, 6)) {
+          blackShortCastle = 2;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Only needs to move the rook accordingly, because piece is moved with validation
+  public void executeCastling(Cell[][] cell) {
+    if (currentTurnColor == Color.WHITE) {
+      if (whiteShortCastle == 1) {
+        cell[0][2].setPieceValues(Color.WHITE, "rook", cell[0][0].getPieceImage());
+        cell[0][0].clearPiece();
+      } else if (whiteShortCastle == 2) {
+        cell[0][4].setPieceValues(Color.WHITE, "rook", cell[0][7].getPieceImage());
+        cell[0][7].clearPiece();
+      }
+    } else {
+      if (blackShortCastle == 1) {
+        cell[7][2].setPieceValues(Color.BLACK, "rook", cell[7][0].getPieceImage());
+        cell[7][0].clearPiece();
+      } else if (blackShortCastle == 2) {
+        cell[7][4].setPieceValues(Color.BLACK, "rook", cell[7][7].getPieceImage());
+        cell[7][7].clearPiece();
+      }
+    }
+  }
+
+  // needed for castling
+  public Boolean isCellUnderAttack(Cell[][] cell, int attackedRow, int attackedCol) {
+    for (int fromRow = 0; fromRow < 8; fromRow++) {
+      for (int fromCol = 0; fromCol < 8; fromCol++) {
+        if (currentTurnColor == Color.WHITE
+            && cell[fromRow][fromCol].getPieceColor() == Color.BLACK) {
+          if (isMoveAllowed(cell, fromRow, fromCol, attackedRow, attackedCol)) {
+            return true;
+          }
+        } else if (currentTurnColor == Color.BLACK
+            && cell[fromRow][fromCol].getPieceColor() == Color.WHITE) {
+          if (isMoveAllowed(cell, fromRow, fromCol, attackedRow, attackedCol)) {
+            return true;
+          }
+        }
       }
     }
 
@@ -123,7 +222,11 @@ public class ChessPiece {
     int oldBlackKingRow = blackKingRow;
     int oldBlackKingCol = blackKingCol;
     Boolean isKing = false;
-    if (copy[fromRow][fromCol].getPieceName() == "king") {
+
+    String pieceName = cell[fromRow][fromCol].getPieceName();
+    movePiece(copy, fromRow, fromCol, toRow, toCol);
+
+    if (pieceName == "king") {
       // (Could also be using the method KingStorage)
       isKing = true;
       if (currentTurnColor == Color.WHITE) {
@@ -134,7 +237,6 @@ public class ChessPiece {
         blackKingCol = toCol;
       }
     }
-    movePiece(copy, fromRow, fromCol, toRow, toCol);
 
     int kingRow = (currentTurnColor == Color.WHITE) ? whiteKingRow : blackKingRow;
     int kingCol = (currentTurnColor == Color.WHITE) ? whiteKingCol : blackKingCol;
@@ -182,7 +284,7 @@ public class ChessPiece {
   }
 
   public Boolean isCheck(Cell[][] cell) {
-    // change color to the other player
+    // change color shortly to see if the enemy can attack the empty pieces or king is in check
     currentTurnColor = (currentTurnColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
     int kingRow = (currentTurnColor == Color.WHITE) ? whiteKingRow : blackKingRow;
     int kingCol = (currentTurnColor == Color.WHITE) ? whiteKingCol : blackKingCol;
@@ -285,6 +387,13 @@ public class ChessPiece {
     // check for enPassant
     if (pieceName == "pawn" && isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
       executeEnPassant(cell, toRow, toCol);
+    }
+
+    // check for castling
+    if (pieceName == "king" && (whiteKingNotMoved || blackKingNotMoved)) {
+      // will only execute if certain conditions inside of isKingMoveAllowed are true
+      // moves rooks
+      executeCastling(cell);
     }
 
     // Clear the piece values in the source cell
@@ -582,43 +691,7 @@ public class ChessPiece {
 
     return false;
   }
-  //hardcoded weil kein bock mehr
-  public boolean isCastleMoveAllowed(Cell[][] cell){
-    //checks the color of the piece
-    //white king side
-    if(currentTurnColor == Color.WHITE){
-      //checks if the king moved
-      if(whiteKingCol== 3 && whiteKingRow == 0 ){
-        //kingsidecastle
-        if(cell[0][0].getPieceName()=="rook" && cell[1][0].getPieceName()==null&& cell[2][0].getPieceName()==null){
-          //if(//hier muss geprüft werden ob die felder angegriffen werden)
-          return true;
-        }
-       //queensidecastle
-       if(cell[7][0].getPieceName()=="rook" && cell[1][0].getPieceName()==null&& cell[2][0].getPieceName()==null&& cell[4][0]== null){
-         //hier eine funktion die die leeren felder prüft ob sie angegriffen werden
-         return true;
-       }
-      }
 
-    }
-    //black king side
-    else{
-      if(blackKingCol== 3 && blackKingRow == 7 ){
-        //kingsidecastle
-        if(cell[0][7].getPieceName()=="rook" && cell[1][7].getPieceName()==null&& cell[2][7].getPieceName()==null){
-          //if(//hier muss geprüft werden ob die felder angegriffen werden)
-          return true;
-        }
-        //queensidecastle
-        if(cell[7][0].getPieceName()=="rook" && cell[1][7].getPieceName()==null&& cell[2][7].getPieceName()==null&& cell[4][7]== null){
-          //hier eine funktion die die leeren felder prüft ob sie angegriffen werden
-          return true;
-        }
-      }
-    }
-    return false;
-  }
   // hardcoded numbers bad should be altered
   public void showAllpossibleMoves(Cell[][] cell, int fromRow, int fromCol) {
     for (int j = 0; j < 8; j++) {

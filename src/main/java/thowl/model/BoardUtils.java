@@ -16,10 +16,9 @@ public class BoardUtils {
   private final int cellCount = 8;
 
   public Cell[][] cell = new Cell[cellCount][cellCount];
-  private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
   private Cell selectedCell = null;
 
- // private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
+  private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
 
   /**
    * Creates the colored boared and calls method addIndices for the details
@@ -126,7 +125,6 @@ public class BoardUtils {
       fromCol = selectedCell.getCol();
       toRow = currentCell.getRow();
       toCol = currentCell.getCol();
-      System.out.println(toCol + " " + toRow);
       // exit method if wrong color tries to move
       if (selectedCell.getPieceColor() != chessPiece.currentTurnColor) {
         System.out.print("It's not your turn. "); // Inform the player
@@ -143,8 +141,14 @@ public class BoardUtils {
           if (cell[fromRow][fromCol].getPieceName() == "king") {
             chessPiece.kingPositionStorage(chessPiece.currentTurnColor, toRow, toCol);
           }
+          // updates conditions for rochade (Rooks and kings unmoved)
 
           chessPiece.movePiece(cell, fromRow, fromCol, toRow, toCol);
+
+          // set conditions back
+          chessPiece.RookOrKingMoved(cell, fromRow, fromCol, toRow, toCol);
+          chessPiece.whiteShortCastle = 0;
+          chessPiece.blackShortCastle = 0;
 
           // testing for checkmate (Player change happen in isCheck)
           if (chessPiece.isCheck(cell)) {
@@ -186,12 +190,22 @@ public class BoardUtils {
     }
   }
 
+  // clears the field color of a clicked field
   private void clearFieldColor() {
     for (int i = 0; i < cellCount; i++) {
       for (int j = 0; j < cellCount; j++) {
         cell[j][i].setRectangleFill(cell[i][j].getFieldColor());
       }
     }
+  }
+
+  // used for updating complete gamefield color
+  public static void updateColors(ColorVariable colorVariable) {
+    // Verwenden Sie die übergebene ColorVariable-Instanz, um die Farben zu aktualisieren
+    Color finalColor1 = colorVariable.getColor1();
+    Color finalColor2 = colorVariable.getColor2();
+
+    // Rest Ihrer Code, der die Farben verwendet...
   }
 
   private void startPosition() {

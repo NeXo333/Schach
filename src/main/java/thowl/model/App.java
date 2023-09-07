@@ -1,25 +1,36 @@
 package thowl.model;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /**
- * Class contains the main method and creates the chessboard
+ * Class contains methods for 3 different GUI`s Starting Gui
  *
- * @autor Marlon Schrader
+ * @autor Dylan Senger
  */
 public class App extends Application {
 
   private Stage primaryStage;
+  TextArea textArea;
 
   /**
-   * Main Method: Calls from class BoardUtils CreateChessboard() to visualize the board and adds the
-   * Header Point from which everything will be executed
+   * Main Method: Starts the first Gui and the Functionality of the Buttons.
+   *
+   * <p>Main Method: Calls from class BoardUtils CreateChessboard() to visualize the board and adds
+   * the Header Point from which everything will be executed
    *
    * @param primaryStage
    */
@@ -40,19 +51,26 @@ public class App extends Application {
     exit.setTranslateY(30);
 
     // Creates a Button to Change the Grid Collor.
+    // Changing the Grid Color doesnt work, but i didnt want to delete the Code yet
+    // im sure there is a simple fix for making the function work.
     Button Color = new Button("Set Grid Color");
     Color.setTranslateX(140);
     Color.setTranslateY(30);
+    Color.setOnAction(event -> openColorGui());
 
     // Creates a Button to enabel the function to play on time
+    // Disabled because there was no Time to Implement the Functiona
     Button Time = new Button("Enable play on time");
     Time.setTranslateX(140);
     Time.setTranslateY(30);
+    Time.setDisable(true);
 
     // Creates a Button to disabel the function to play on time
+    // Disabled because there was no Time to Implement the Functiona
     Button XTime = new Button("Disable play on time");
     XTime.setTranslateX(140);
     XTime.setTranslateY(30);
+    XTime.setDisable(true);
 
     // Creates a Button to enable show moves
     Button Moves = new Button("Enable Show Moves");
@@ -79,21 +97,78 @@ public class App extends Application {
 
     primaryStage.setScene(scene);
 
+    RedirectedOutputStream redirectedOutputStream = new RedirectedOutputStream();
+    PrintStream printStream = new PrintStream(redirectedOutputStream);
+
     primaryStage.show();
   }
 
-  private void openSecondGUI() {
-    BoardUtils boardUtils = new BoardUtils();
-    GridPane chessboard = boardUtils.createChessboard();
-
-    Scene scene = new Scene(chessboard, 850, 850);
-    primaryStage.setScene(scene);
-    primaryStage.setTitle("Chess by TH-OWL");
-    primaryStage.show();
+  private class RedirectedOutputStream extends OutputStream {
+    @Override
+    public void write(int b) {
+      // Adds the read text to the textArea.
+      if (textArea != null) {
+        textArea.appendText(String.valueOf((char) b));
+      }
+    }
   }
 
   public static void main(String[] args) {
     launch(args);
+  }
+
+  // Function to open the color gui
+  private void openColorGui() {
+    ChangeColor colorGui = new ChangeColor();
+    colorGui.start(new Stage());
+  }
+
+  // Function to open the actual chesboardGUI.
+  private void openSecondGUI() {
+    BoardUtils boardUtils = new BoardUtils();
+    GridPane chessboard = boardUtils.createChessboard();
+
+    VBox vbox = new VBox(10);
+    // Button to let one of the players surrender during game.
+    // The player whose turn it is also surrenders.
+    Button Surrender = new Button("Surrender");
+    Surrender.setOnAction(
+        event -> {
+          ChessPiece chesspiece = new ChessPiece();
+          Color currentColor = chesspiece.getCurrentTurnColor();
+
+          if (currentColor == Color.WHITE) {
+            System.out.println("White player surrendered");
+          } else {
+            System.out.println("Black player surrendered");
+          }
+        });
+    // Button to let you quit the game during playing.
+    Button exit2 = new Button("Quit");
+    exit2.setOnAction(event -> primaryStage.close());
+
+    HBox buttonBox = new HBox(10, Surrender, exit2);
+    buttonBox.setAlignment(Pos.TOP_RIGHT);
+
+    Region space = new Region();
+    HBox.setHgrow(space, Priority.ALWAYS);
+
+    // Adding Textarea to show the Terminaloutput on Screnn.
+    textArea = new TextArea();
+    textArea.setEditable(false);
+    textArea.setWrapText(true);
+
+    RedirectedOutputStream redirectedOutputStream = new RedirectedOutputStream();
+    PrintStream printStream = new PrintStream(redirectedOutputStream);
+
+    vbox.getChildren().addAll(space, buttonBox, chessboard, textArea);
+
+    System.setOut(printStream);
+
+    Scene scene = new Scene(vbox, 850, 850);
+    primaryStage.setScene(scene);
+    primaryStage.setTitle("Chess by TH-OWL");
+    primaryStage.show();
   }
 
   public static String javaVersion() {
