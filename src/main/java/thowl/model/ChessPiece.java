@@ -31,12 +31,6 @@ public class ChessPiece {
   public Boolean blackKingNotMoved = true;
   public int blackShortCastle = 0; // 0 = no castle, 1 == short castle, 2 == long castle
 
-  // for king in check
-  private int whiteKingRow = 0;
-  private int whiteKingCol = 3;
-  private int blackKingRow = 7;
-  private int blackKingCol = 3;
-
   public Color getCurrentTurnColor() {
     if (currentTurnColor == Color.WHITE) {
       return Color.WHITE;
@@ -45,9 +39,7 @@ public class ChessPiece {
     }
   }
 
-  // TODO: update if a piece moved. Called after every move when cell[fromRow][fromCol].getPieceName
-  // == rook or king
-  // after movepiece
+  /* update if a piece moved, bacause once its moved the castling no longer functions. Called after every move when cell[fromRow][fromCol].getPieceName  == rook or king */
   public void RookOrKingMoved(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     if (fromRow == 0 && fromCol == 3) {
       whiteKingNotMoved = false;
@@ -82,9 +74,7 @@ public class ChessPiece {
         return true;
       }
     }
-
-    // TODO: look if castling possible.
-    // King shouldnt be in check
+    // look for every possible castling move
     if ((fromRow == 0 || fromRow == 7) && (toCol == 1 || toCol == 5)) {
 
       if ((currentTurnColor == Color.WHITE)
@@ -141,7 +131,7 @@ public class ChessPiece {
     return false;
   }
 
-  // Only needs to move the rook accordingly, because piece is moved with validation
+  // Only needs to move the rook accordingly, because the king is moved with movePiece method
   public void executeCastling(Cell[][] cell) {
     if (currentTurnColor == Color.WHITE) {
       if (whiteShortCastle == 1) {
@@ -162,7 +152,15 @@ public class ChessPiece {
     }
   }
 
-  // needed for castling
+  /**
+   * Method can look if a cell could be attacked by an opponents piece. If a piece can attack the
+   * cell then return false
+   *
+   * @param cell
+   * @param attackedRow
+   * @param attackedCol
+   * @return
+   */
   public Boolean isCellUnderAttack(Cell[][] cell, int attackedRow, int attackedCol) {
     for (int fromRow = 0; fromRow < 8; fromRow++) {
       for (int fromCol = 0; fromCol < 8; fromCol++) {
@@ -181,154 +179,6 @@ public class ChessPiece {
     }
 
     return false;
-  }
-
-  /*  Creates a copy of the game field (necessary for check/ checkmate and castling to see,
-  if the moves are possible */
-  public void copyGameField(Cell[][] source, Cell[][] destination) {
-    for (int row = 0; row < 8; row++) {
-      for (int col = 0; col < 8; col++) {
-        Color fieldColor = source[row][col].getFieldColor();
-        Color pieceColor = source[row][col].getPieceColor();
-        String pieceName = source[row][col].getPieceName();
-        destination[row][col] = new Cell(row, col, 70, fieldColor, pieceColor, pieceName, null);
-      }
-    }
-  }
-
-  // WHEN USING THIS METHOD USE FIRST: CELL[FROMROW][TOCOL].GETPIECENAME() == KING
-  // stores Kings position and is important for check
-  public void kingPositionStorage(Color color, int toRow, int toCol) {
-    if (color == Color.WHITE) {
-      whiteKingRow = toRow;
-      whiteKingCol = toCol;
-    } else if (color == Color.BLACK) {
-      blackKingRow = toRow;
-      blackKingCol = toCol;
-    }
-    // Change color settings in Gui. try catch for color not possible
-  }
-
-  // checks if your move puts your own King into check
-  public boolean iskingInCheck(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
-    Cell[][] copy = new Cell[8][8];
-
-    copyGameField(cell, copy);
-
-    int oldWhiteKingRow = whiteKingRow;
-    int oldWhiteKingCol = whiteKingCol;
-    int oldBlackKingRow = blackKingRow;
-    int oldBlackKingCol = blackKingCol;
-    Boolean isKing = false;
-
-    String pieceName = cell[fromRow][fromCol].getPieceName();
-    movePiece(copy, fromRow, fromCol, toRow, toCol);
-
-    if (pieceName == "king") {
-      isKing = true;
-      // (Could also be using the method KingStorage)
-      if (currentTurnColor == Color.WHITE) {
-        whiteKingRow = toRow;
-        whiteKingCol = toCol;
-      } else if (currentTurnColor == Color.BLACK) {
-        blackKingRow = toRow;
-        blackKingCol = toCol;
-      }
-    }
-
-    int kingRow = (currentTurnColor == Color.WHITE) ? whiteKingRow : blackKingRow;
-    int kingCol = (currentTurnColor == Color.WHITE) ? whiteKingCol : blackKingCol;
-
-    for (int row = 0; row < 8; row++) {
-      for (int col = 0; col < 8; col++) {
-        if (currentTurnColor == Color.WHITE) {
-          if (copy[row][col].getPieceColor() == Color.BLACK) {
-            if (isKing && isMoveAllowed(copy, row, col, whiteKingRow, whiteKingCol)) {
-              // reset the vars
-              isKing = false;
-              whiteKingRow = oldWhiteKingRow;
-              whiteKingCol = oldWhiteKingCol;
-              return true;
-            }
-            if (isMoveAllowed(copy, row, col, kingRow, kingCol)) {
-              // maybe set a var
-              return true;
-            }
-          }
-        } else if (currentTurnColor == Color.BLACK) {
-          if (copy[row][col].getPieceColor() == Color.WHITE) {
-            if (isKing && isMoveAllowed(copy, row, col, blackKingRow, blackKingCol)) {
-              // reset the vars
-              isKing = false;
-              blackKingRow = oldBlackKingRow;
-              blackKingCol = oldBlackKingCol;
-              return true;
-            }
-            if (isMoveAllowed(copy, row, col, kingRow, kingCol)) {
-              //
-              return true;
-            }
-          }
-        }
-      }
-    }
-    isKing = false;
-    whiteKingRow = oldWhiteKingRow;
-    whiteKingCol = oldWhiteKingCol;
-    blackKingRow = oldBlackKingRow;
-    blackKingCol = oldBlackKingCol;
-
-    return false;
-  }
-
-  public Boolean isCheck(Cell[][] cell) {
-    // change color shortly to see if the enemy can attack the empty pieces or king is in check
-    currentTurnColor = (currentTurnColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
-    int kingRow = (currentTurnColor == Color.WHITE) ? whiteKingRow : blackKingRow;
-    int kingCol = (currentTurnColor == Color.WHITE) ? whiteKingCol : blackKingCol;
-
-    for (int row = 0; row < 8; row++) {
-      for (int col = 0; col < 8; col++) {
-        if (currentTurnColor == Color.WHITE) {
-          if (cell[row][col].getPieceColor() == Color.BLACK) {
-            if (isMoveAllowed(cell, row, col, kingRow, kingCol)) {
-              return true;
-            }
-          }
-        } else if (currentTurnColor == Color.BLACK) {
-          if (cell[row][col].getPieceColor() == Color.WHITE) {
-            if (isMoveAllowed(cell, row, col, kingRow, kingCol)) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-
-    return false;
-  }
-
-  public Boolean isCheckmate(Cell[][] cell) {
-    Cell[][] copy = new Cell[8][8];
-    copyGameField(cell, copy);
-
-    for (int fromRow = 0; fromRow < 8; fromRow++) {
-      for (int fromCol = 0; fromCol < 8; fromCol++) {
-        if (copy[fromRow][fromCol].getPieceColor() == currentTurnColor) {
-          for (int toRow = 0; toRow < 8; toRow++) {
-            for (int toCol = 0; toCol < 8; toCol++) {
-              if (isMoveAllowed(copy, fromRow, fromCol, toRow, toCol)) {
-                // is there a move which puts the king out of check? if yes then return false
-                if (!iskingInCheck(copy, fromRow, fromCol, toRow, toCol)) {
-                  return false;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return true;
   }
 
   /**
@@ -390,7 +240,7 @@ public class ChessPiece {
     // check for castling
     if (pieceName == "king" && (whiteKingNotMoved || blackKingNotMoved)) {
       // will only execute if certain conditions inside of isKingMoveAllowed are true
-      // moves rooks
+      // moves rook for its own (king is moved through setPieceValues)
       executeCastling(cell);
     }
 

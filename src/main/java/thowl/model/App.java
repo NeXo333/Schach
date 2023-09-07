@@ -26,6 +26,18 @@ public class App extends Application {
   private Stage primaryStage;
   TextArea textArea;
 
+  public static String javaVersion() {
+    return System.getProperty("java.version");
+  }
+
+  public static String javafxVersion() {
+    return System.getProperty("javafx.version");
+  }
+
+  public static void main(String[] args) {
+    launch(args);
+  }
+
   /**
    * Main Method: Starts the first Gui and the Functionality of the Buttons.
    *
@@ -113,10 +125,6 @@ public class App extends Application {
     }
   }
 
-  public static void main(String[] args) {
-    launch(args);
-  }
-
   // Function to open the color gui
   private void openColorGui() {
     ChangeColor colorGui = new ChangeColor();
@@ -169,13 +177,5 @@ public class App extends Application {
     primaryStage.setScene(scene);
     primaryStage.setTitle("Chess by TH-OWL");
     primaryStage.show();
-  }
-
-  public static String javaVersion() {
-    return System.getProperty("java.version");
-  }
-
-  public static String javafxVersion() {
-    return System.getProperty("javafx.version");
   }
 }

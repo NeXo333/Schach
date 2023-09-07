@@ -19,6 +19,7 @@ public class BoardUtils {
   private Cell selectedCell = null;
 
   private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
+  private ControlCheckmate control = new ControlCheckmate();
 
   /**
    * Creates the colored boared and calls method addIndices for the details
@@ -137,32 +138,60 @@ public class BoardUtils {
 
       if (chessPiece.isMoveAllowed(cell, fromRow, fromCol, toRow, toCol)) {
         // when move would put own king into check than error
-        if (!chessPiece.iskingInCheck(cell, fromRow, fromCol, toRow, toCol)) {
-
+        if (!control.iskingInCheck(cell, fromRow, fromCol, toRow, toCol)) {
+          // update kings position
           if (cell[fromRow][fromCol].getPieceName() == "king") {
-            chessPiece.kingPositionStorage(chessPiece.currentTurnColor, toRow, toCol);
+            control.kingPositionStorage(chessPiece.currentTurnColor, toRow, toCol);
           }
 
-          // TODO: look for checkmate before choosing a piece (queen and knight if pawn at end row)
-          // Check for pawn promotion (pawn at end row)
-          chessPiece.nextMove += 1;
-          if (cell[toRow][toCol].getPieceName() == "pawn" && (toRow == 0 || toRow == 7)) {
-            chessPiece.openPromotionDialog(cell, cell[toRow][toCol].getPieceColor(), toRow, toCol);
-            System.out.println("pawn changed to " + cell[toRow][toCol].getPieceName());
-          }
-
+          // params for printing move
+          String color =
+              (cell[fromRow][fromCol].getPieceColor() == Color.WHITE) ? "white " : "black ";
+          String pieceName = cell[fromRow][fromCol].getPieceName();
+          char fromChar = (char) (fromCol + 'A'); // makes the indice int to letter
+          char toChar = (char) (toCol + 'A');
+          // executes the move
           chessPiece.movePiece(cell, fromRow, fromCol, toRow, toCol);
+          // print move
+          System.out.println(
+              color
+                  + pieceName
+                  + " from "
+                  + (fromRow + 1)
+                  + fromChar
+                  + " to "
+                  + (toRow + 1)
+                  + toChar);
 
-          // set conditions back
+          // set conditions for castling back
           chessPiece.RookOrKingMoved(cell, fromRow, fromCol, toRow, toCol);
           chessPiece.whiteShortCastle = 0;
           chessPiece.blackShortCastle = 0;
 
-          // testing for checkmate (Player change happen in isCheck)
-          if (chessPiece.isCheck(cell)) {
+          chessPiece.nextMove += 1; // for en passant. Its only possible in the next move
+          // look for pawn promotion (pawn at end row)
+          if (pieceName == "pawn" && (toRow == 0 || toRow == 7)) {
+            chessPiece.openPromotionDialog(cell, cell[toRow][toCol].getPieceColor(), toRow, toCol);
+            System.out.println("pawn changed to " + cell[toRow][toCol].getPieceName());
+          }
+
+          // other player (color change already here to look instantly for check/ checkmate)
+          chessPiece.currentTurnColor =
+              (chessPiece.currentTurnColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
+
+          // make king position of either white or black to var: kingRow, kingCol
+          int kingRow =
+              (chessPiece.currentTurnColor == Color.WHITE)
+                  ? control.whiteKingRow
+                  : control.blackKingRow;
+          int kingCol =
+              (chessPiece.currentTurnColor == Color.WHITE)
+                  ? control.whiteKingCol
+                  : control.blackKingCol;
+
+          if (chessPiece.isCellUnderAttack(cell, kingRow, kingCol)) {
             System.out.println("check");
-            if (chessPiece.isCheckmate(cell)) {
-              // TODO: make pop up window instead of printing to the terminal
+            if (control.isCheckmate(cell)) {
               if (chessPiece.currentTurnColor == Color.WHITE) {
                 System.out.println("CHECKMATE: BLACK WON");
               } else if (chessPiece.currentTurnColor == Color.BLACK) {
@@ -172,20 +201,20 @@ public class BoardUtils {
           }
           clearFieldColor();
           selectedCell = null;
-          // nextMove += 1;
         } else {
           // deselects the piece if the move was not possible
           selectedCell.setRectangleFill(selectedCell.getFieldColor());
           clearFieldColor();
           selectedCell = null;
-          System.out.print(" King in check ");
+          System.out.println(" Moves king into or already is in check ");
+          ;
         }
       } else {
         // deselects the piece if the move was not possible
         selectedCell.setRectangleFill(selectedCell.getFieldColor());
         clearFieldColor();
         selectedCell = null;
-        System.out.print(" Not a possible move ");
+        System.out.println(" Not a possible move ");
       }
     }
   }
@@ -197,15 +226,6 @@ public class BoardUtils {
         cell[j][i].setRectangleFill(cell[i][j].getFieldColor());
       }
     }
-  }
-
-  // used for updating complete gamefield color
-  public static void updateColors(ColorVariable colorVariable) {
-    // Verwenden Sie die übergebene ColorVariable-Instanz, um die Farben zu aktualisieren
-    Color finalColor1 = colorVariable.getColor1();
-    Color finalColor2 = colorVariable.getColor2();
-
-    // Rest Ihrer Code, der die Farben verwendet...
   }
 
   private void startPosition() {
@@ -261,5 +281,15 @@ public class BoardUtils {
     for (int column = 0; column < 8; column++) {
       cell[6][column].setPieceValues(Color.BLACK, "pawn", pieceImage);
     }
+  }
+
+  // doesnt function
+  // used for updating complete gamefield color
+  public static void updateColors(ColorVariable colorVariable) {
+    // Verwenden Sie die übergebene ColorVariable-Instanz, um die Farben zu aktualisieren
+    Color finalColor1 = colorVariable.getColor1();
+    Color finalColor2 = colorVariable.getColor2();
+
+    // Rest Ihrer Code, der die Farben verwendet...
   }
 }
