@@ -1,175 +1,42 @@
 package thowl.model;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
+import thowl.model.TurnManager.GameManager;
 
+/**
+ * The ChessPiece class manages chess piece movements and enforces the rules of chess for each piece
+ * type. It provides methods to check the validity of moves, highlight possible moves, and has the
+ * modePiece method. Additionaly it looks while validating possible moves for special moves like
+ * enPassant and then calls the SpecialMoves class further on.
+ *
+ * @author Marlon Schrader
+ */
 public class ChessPiece {
 
-  public Color currentTurnColor = Color.WHITE; // Game starts for white
+  // responsible for color access and color change
+  TurnManager turnManager = GameManager.getTurnManager();
 
-  // for en passant
-  public int nextMove = 0; // only next move allowed for enPassant
-  private int lastMovedPawnRow; // remember last pawn that made to 2 cell steps
-  private int lastMovedPawnCol;
-
-  // for castling (white left rook == The left rook from white king POV)
-  // when a piece moved castling no longer possible
-  public Boolean whiteLeftRookNotMoved = true;
-  public Boolean whiteRightRookNotMoved = true;
-  public Boolean whiteKingNotMoved = true;
-  public int whiteShortCastle = 0; // 0 = no castle, 1 == short castle, 2 == long castle
-
-  public Boolean blackLeftRookNotMoved = true;
-  public Boolean blackRightRookNotMoved = true;
-  public Boolean blackKingNotMoved = true;
-  public int blackShortCastle = 0; // 0 = no castle, 1 == short castle, 2 == long castle
-
-  public Color getCurrentTurnColor() {
-    if (currentTurnColor == Color.WHITE) {
-      return Color.WHITE;
-    } else {
-      return Color.BLACK;
-    }
-  }
-
-  /* update if a piece moved, bacause once its moved the castling no longer functions. Called after every move when cell[fromRow][fromCol].getPieceName  == rook or king */
-  public void RookOrKingMoved(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
-    if (fromRow == 0 && fromCol == 3) {
-      whiteKingNotMoved = false;
-      whiteLeftRookNotMoved = false;
-      whiteRightRookNotMoved = false;
-    } else if (fromRow == 0 && fromCol == 0) {
-      whiteRightRookNotMoved = false;
-    } else if (fromRow == 0 && fromCol == 7) {
-      whiteLeftRookNotMoved = false;
-    }
-
-    if (fromRow == 7 && fromCol == 3) {
-      blackKingNotMoved = false;
-      blackLeftRookNotMoved = false;
-      blackRightRookNotMoved = false;
-    } else if (fromRow == 7 && fromCol == 0) {
-      blackLeftRookNotMoved = false;
-    } else if (fromRow == 7 && fromCol == 7) {
-      blackRightRookNotMoved = false;
-    }
-  }
-
-  public Boolean isKingMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
-    int rowDistance = Math.abs(toRow - fromRow);
-    int colDistance = Math.abs(toCol - fromCol);
-
-    // King can move one square in any direction
-    if (rowDistance <= 1 && colDistance <= 1) {
-      // Check if the destination cell is empty or occupied by an opponent's piece
-      if (cell[toRow][toCol].isEmpty()
-          || cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor()) {
-        return true;
-      }
-    }
-    // look for every possible castling move
-    if ((fromRow == 0 || fromRow == 7) && (toCol == 1 || toCol == 5)) {
-
-      if ((currentTurnColor == Color.WHITE)
-          && (fromRow == 0 && fromCol == 3)
-          && (toRow == 0 && toCol == 1)
-          && (whiteKingNotMoved && whiteRightRookNotMoved)
-          && (cell[0][1].isEmpty() && cell[0][2].isEmpty())) {
-
-        if (!isCellUnderAttack(cell, 0, 1)
-            && !isCellUnderAttack(cell, 0, 2)
-            && !isCellUnderAttack(cell, 0, 3)) {
-          whiteShortCastle = 1;
-          return true;
-        }
-      } else if ((currentTurnColor == Color.WHITE)
-          && (fromRow == 0 && fromCol == 3)
-          && (toRow == 0 && toCol == 5)
-          && (whiteKingNotMoved && whiteLeftRookNotMoved)
-          && (cell[0][4].isEmpty() && cell[0][5].isEmpty() && cell[0][6].isEmpty())) {
-
-        if (!isCellUnderAttack(cell, 0, 3)
-            && !isCellUnderAttack(cell, 0, 4)
-            && !isCellUnderAttack(cell, 0, 5)) {
-          whiteShortCastle = 2;
-          return true;
-        }
-        // black Castling
-      } else if ((currentTurnColor == Color.BLACK)
-          && (fromRow == 7 && fromCol == 3)
-          && (toRow == 7 && toCol == 1)
-          && (blackKingNotMoved && blackLeftRookNotMoved)
-          && (cell[7][1].isEmpty() && cell[7][2].isEmpty())) {
-
-        if (!isCellUnderAttack(cell, 7, 1)
-            && !isCellUnderAttack(cell, 7, 2)
-            && !isCellUnderAttack(cell, 7, 3)) {
-          blackShortCastle = 1;
-          return true;
-        }
-      } else if ((currentTurnColor == Color.BLACK)
-          && (fromRow == 7 && fromCol == 3)
-          && (toRow == 7 && toCol == 5)
-          && (blackKingNotMoved && blackRightRookNotMoved)
-          && (cell[7][4].isEmpty() && cell[7][5].isEmpty() && cell[7][6].isEmpty())) {
-
-        if (!isCellUnderAttack(cell, 7, 3)
-            && !isCellUnderAttack(cell, 7, 4)
-            && !isCellUnderAttack(cell, 7, 5)) {
-          blackShortCastle = 2;
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  // Only needs to move the rook accordingly, because the king is moved with movePiece method
-  public void executeCastling(Cell[][] cell) {
-    if (currentTurnColor == Color.WHITE) {
-      if (whiteShortCastle == 1) {
-        cell[0][2].setPieceValues(Color.WHITE, "rook", cell[0][0].getPieceImage());
-        cell[0][0].clearPiece();
-      } else if (whiteShortCastle == 2) {
-        cell[0][4].setPieceValues(Color.WHITE, "rook", cell[0][7].getPieceImage());
-        cell[0][7].clearPiece();
-      }
-    } else {
-      if (blackShortCastle == 1) {
-        cell[7][2].setPieceValues(Color.BLACK, "rook", cell[7][0].getPieceImage());
-        cell[7][0].clearPiece();
-      } else if (blackShortCastle == 2) {
-        cell[7][4].setPieceValues(Color.BLACK, "rook", cell[7][7].getPieceImage());
-        cell[7][7].clearPiece();
-      }
-    }
-  }
+  // enPassant, Pawn promotion, castling
+  SpecialMoves special = new SpecialMoves();
 
   /**
-   * Method can look if a cell could be attacked by an opponents piece. If a piece can attack the
-   * cell then return false
+   * Checks if the given cell is under attack by an opponent's piece.
    *
-   * @param cell
-   * @param attackedRow
-   * @param attackedCol
-   * @return
+   * @param cell The chessboard cells.
+   * @param attackedRow The row of the attacked cell.
+   * @param attackedCol The column of the attacked cell.
+   * @return true if the cell is under attack, false otherwise.
    */
   public Boolean isCellUnderAttack(Cell[][] cell, int attackedRow, int attackedCol) {
     for (int fromRow = 0; fromRow < 8; fromRow++) {
       for (int fromCol = 0; fromCol < 8; fromCol++) {
-        if (currentTurnColor == Color.WHITE
+        if (turnManager.getCurrentTurnColor() == Color.WHITE
             && cell[fromRow][fromCol].getPieceColor() == Color.BLACK) {
           if (isMoveAllowed(cell, fromRow, fromCol, attackedRow, attackedCol)) {
             return true;
           }
-        } else if (currentTurnColor == Color.BLACK
+        } else if (turnManager.getCurrentTurnColor() == Color.BLACK
             && cell[fromRow][fromCol].getPieceColor() == Color.WHITE) {
           if (isMoveAllowed(cell, fromRow, fromCol, attackedRow, attackedCol)) {
             return true;
@@ -182,24 +49,38 @@ public class ChessPiece {
   }
 
   /**
-   * is called by the eventhandler when clicking a piece to move to another cell and gets the
-   * pieceName given from which it then calls which Movement logic method needs to be called. If the
-   * move is possible it returns true (and the method in eventhandler will call movePiece method and
-   * reposition the piece).
+   * Highlights all possible moves for a piece on a given cell (doesnt check if moves into check).
    *
-   * @param cell
-   * @param fromRow
-   * @param fromCol
-   * @param toRow
-   * @param toCol
-   * @return
+   * @param cell The chessboard cells.
+   * @param fromRow The source row of the piece.
+   * @param fromCol The source column of the piece.
+   */
+  public void showAllpossibleMoves(Cell[][] cell, int fromRow, int fromCol) {
+    for (int j = 0; j < 8; j++) {
+      for (int i = 0; i < 8; i++) {
+        if (isMoveAllowed(cell, fromRow, fromCol, i, j)) {
+          cell[i][j].setRectangleFill(Color.LIGHTYELLOW);
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if a move from one cell to another is allowed for a piece.
+   *
+   * @param cell The chessboard cells.
+   * @param fromRow The source row of the piece.
+   * @param fromCol The source column of the piece.
+   * @param toRow The destination row.
+   * @param toCol The destination column.
+   * @return true if the move is allowed, false otherwise.
    */
   public boolean isMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     String pieceName = cell[fromRow][fromCol].getPieceName();
     if (pieceName == null) {
       return false;
     }
-    switch (pieceName) {
+    switch (pieceName) { // if is***MoveAllowed returns then either true or false
       case "pawn":
         return isPawnMoveAllowed(cell, fromRow, fromCol, toRow, toCol);
       case "rook":
@@ -218,12 +99,13 @@ public class ChessPiece {
   }
 
   /**
-   * Move a piece and print its changes.
+   * Moves a piece from one cell to another and performs special actions if needed.
    *
-   * @param fromRow
-   * @param fromCol
-   * @param toRow
-   * @param toCol
+   * @param cell The chessboard cells.
+   * @param fromRow The source row of the piece.
+   * @param fromCol The source column of the piece.
+   * @param toRow The destination row.
+   * @param toCol The destination column.
    */
   public void movePiece(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
 
@@ -233,112 +115,34 @@ public class ChessPiece {
     Image pieceImage = cell[fromRow][fromCol].getPieceImage();
 
     // check for enPassant
-    if (pieceName == "pawn" && isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
-      executeEnPassant(cell, toRow, toCol);
+    if (pieceName == "pawn" && special.isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
+      special.executeEnPassant(cell, toRow, toCol);
     }
 
     // check for castling
-    if (pieceName == "king" && (whiteKingNotMoved || blackKingNotMoved)) {
-      // will only execute if certain conditions inside of isKingMoveAllowed are true
-      // moves rook for its own (king is moved through setPieceValues)
-      executeCastling(cell);
+    if (pieceName == "king" && (special.whiteKingNotMoved || special.blackKingNotMoved)) {
+      /* will only execute if certain conditions inside of isKingMoveAllowed are true.
+      Moves rooks for its own*/
+      special.executeCastling(cell);
     }
-
-    // Clear the piece values in the source cell
-    cell[fromRow][fromCol].clearPiece();
 
     // Set the piece values in the destination cell
     cell[toRow][toCol].setPieceValues(pieceColor, pieceName, pieceImage);
+
+    // Clear the piece values in the source cell
+    cell[fromRow][fromCol].clearPiece();
   }
 
-  public class PromoteButton extends Button {
-
-    ChessPiece newPiece = new ChessPiece();
-
-    public PromoteButton(
-        ImageView icon, Cell[][] cell, int toRow, int toCol, Color pieceColor, String pieceName) {
-      setGraphic(icon);
-      setOnAction(
-          event -> {
-            newPiece.promotePawn(cell, toRow, toCol, pieceColor, pieceName);
-          });
-    }
-  }
-
-  // Creates the window for choosing a new Piece and calls the PromotoButton class as eventhandler
-  public void openPromotionDialog(Cell[][] cell, Color pieceColor, int toRow, int toCol) {
-    ImageView queen = new ImageView();
-    ImageView rook = new ImageView();
-    ImageView bishop = new ImageView();
-    ImageView knight = new ImageView();
-
-    // white pieces
-    if (pieceColor == Color.WHITE) {
-      Image queenImage = new Image(getClass().getResourceAsStream("/images/whiteQueen.png"));
-      queen.setImage(queenImage);
-
-      Image rookImage = new Image(getClass().getResourceAsStream("/images/whiteRook.png"));
-      rook.setImage(rookImage);
-
-      Image bishopImage = new Image(getClass().getResourceAsStream("/images/whiteBishop.png"));
-      bishop.setImage(bishopImage);
-
-      Image knightImage = new Image(getClass().getResourceAsStream("/images/whiteknight.png"));
-      knight.setImage(knightImage);
-    } else {
-      // black pieces
-      Image queenImage = new Image(getClass().getResourceAsStream("/images/blackQueen.png"));
-      queen.setImage(queenImage);
-
-      Image rookImage = new Image(getClass().getResourceAsStream("/images/blackRook.png"));
-      rook.setImage(rookImage);
-
-      Image bishopImage = new Image(getClass().getResourceAsStream("/images/blackBishop.png"));
-      bishop.setImage(bishopImage);
-
-      Image knightImage = new Image(getClass().getResourceAsStream("/images/blackknight.png"));
-      knight.setImage(knightImage);
-    }
-
-    // box for choosing to which piece the pawn is promoted
-    HBox buttonsBox =
-        new HBox(
-            new PromoteButton(queen, cell, toRow, toCol, pieceColor, "queen"),
-            new PromoteButton(rook, cell, toRow, toCol, pieceColor, "rook"),
-            new PromoteButton(bishop, cell, toRow, toCol, pieceColor, "bishop"),
-            new PromoteButton(knight, cell, toRow, toCol, pieceColor, "knight"));
-
-    // Window for choosing the new piece
-    Alert promotionAlert = new Alert(AlertType.NONE);
-    promotionAlert.setTitle("Pawn Promotion");
-    promotionAlert.setHeaderText("Choose a piece to promote your pawn:");
-
-    // Set content and buttons
-    promotionAlert.getDialogPane().setContent(buttonsBox);
-    ButtonType applyButtonType = new ButtonType("Apply");
-    promotionAlert.getButtonTypes().add(applyButtonType);
-
-    // Disables close button (X button)
-    Stage stage = (Stage) promotionAlert.getDialogPane().getScene().getWindow();
-    stage.setOnCloseRequest(e -> e.consume());
-    promotionAlert.showAndWait();
-  }
-
-  // Called by the eventhandler in PromoteButton and sets the chosen piece on the board
-  public void promotePawn(Cell[][] cell, int toRow, int toCol, Color pieceColor, String pieceName) {
-    String capitalizedPieceName = pieceName.substring(0, 1).toUpperCase() + pieceName.substring(1);
-
-    String imagePath;
-    if (pieceColor == Color.WHITE) {
-      imagePath = "/images/white" + capitalizedPieceName + ".png";
-
-    } else {
-      imagePath = "/images/black" + capitalizedPieceName + ".png";
-    }
-    Image image = new Image(getClass().getResourceAsStream(imagePath));
-    cell[toRow][toCol].setPieceValues(pieceColor, pieceName, image);
-  }
-
+  /**
+   * Checks if a pawn's move to a destination cell is allowed.
+   *
+   * @param cell The chessboard cells.
+   * @param fromRow The source row of the piece.
+   * @param fromCol The source column of the piece.
+   * @param toRow The destination row.
+   * @param toCol The destination column.
+   * @return true if the move is allowed, false otherwise.
+   */
   public Boolean isPawnMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     Cell oldCell = cell[fromRow][fromCol];
     Cell newCell = cell[toRow][toCol];
@@ -348,79 +152,126 @@ public class ChessPiece {
     }
 
     if (oldCell.getPieceColor() == Color.WHITE) {
-      if (fromCol == toCol) {
+      if (fromCol == toCol) { // steps forward (1-2)
         if (fromRow - toRow == -1 && newCell.isEmpty()) {
           return true; // One cell forward
         }
         if (fromRow == 1 && toRow == 3 && cell[2][toCol].isEmpty() && newCell.isEmpty()) {
-          nextMove = 0;
-          lastMovedPawnRow = toRow;
-          lastMovedPawnCol = toCol;
+          // vars to remember the last pawn that moved 2 steps forward
+          special.nextMove = 0;
+          special.lastMovedPawnRow = toRow;
+          special.lastMovedPawnCol = toCol;
           return true; // Two cells forward
-        }
+        } // attack
       } else if ((fromCol - toCol == -1 || fromCol - toCol == 1) && fromRow - toRow == -1) {
         if (newCell.getPieceColor() == Color.BLACK
-            || isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
+            || special.isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
           return true; // Hit (left or right)
         }
       }
     } else {
-      if (fromCol == toCol) {
+      if (fromCol == toCol) { // steps forward (1-2)
         if (fromRow - toRow == 1 && newCell.isEmpty()) {
           return true; // One cell forward
         }
         if (fromRow == 6 && toRow == 4 && cell[5][toCol].isEmpty() && newCell.isEmpty()) {
-          nextMove = 0;
-          lastMovedPawnRow = toRow;
-          lastMovedPawnCol = toCol;
+          // vars to remember the last pawn that moved 2 steps forward
+          special.nextMove = 0;
+          special.lastMovedPawnRow = toRow;
+          special.lastMovedPawnCol = toCol;
           return true; // Two cells forward
-        }
+        } // attack
       } else if ((fromCol - toCol == 1 || fromCol - toCol == -1) && fromRow - toRow == 1) {
         if (newCell.getPieceColor() == Color.WHITE
-            || isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
+            || special.isEnPassant(cell, fromRow, fromCol, toRow, toCol)) {
           return true; // Hit (left or right)
         }
       }
     }
-    return false;
+    return false; // Invalid move
   }
 
-  // checks if enPassant is possible
-  public Boolean isEnPassant(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
-    if (currentTurnColor == Color.WHITE) {
-      if (fromRow == 4
-          && nextMove == 1
-          && (lastMovedPawnRow == toRow - 1 && lastMovedPawnCol == toCol)
-          && cell[toRow][toCol].isEmpty()) {
-        return true;
-      }
-    } else if (currentTurnColor == Color.BLACK) {
-      if (fromRow == 3
-          && nextMove == 1
-          && (lastMovedPawnRow == toRow + 1 && lastMovedPawnCol == toCol) // only one pawn possible
-          && cell[toRow][toCol].isEmpty()) {
+  // Would always the same documentation from now on
+
+  /**
+   * Checks if a king's move to a destination cell is allowed.
+   *
+   * @return true if the move is allowed, false otherwise.
+   */
+  public Boolean isKingMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
+    int rowDistance = Math.abs(toRow - fromRow);
+    int colDistance = Math.abs(toCol - fromCol);
+
+    // King can move one square in any direction
+    if (rowDistance <= 1 && colDistance <= 1) {
+      // Check if the destination cell is empty or occupied by an opponent's piece
+      if (cell[toRow][toCol].isEmpty()
+          || cell[toRow][toCol].getPieceColor() != cell[fromRow][fromCol].getPieceColor()) {
         return true;
       }
     }
-    return false;
-  }
 
-  public void executeEnPassant(Cell[][] cell, int toRow, int toCol) {
-    if (currentTurnColor == Color.WHITE) {
-      cell[toRow - 1][toCol].clearPiece();
-    } else {
-      cell[toRow + 1][toCol].clearPiece();
+    // look for castling. King is not allowed to be in check
+    if ((fromRow == 0 || fromRow == 7) && (toCol == 1 || toCol == 5)) { // from starting position
+
+      if ((turnManager.getCurrentTurnColor() == Color.WHITE)
+          && (fromRow == 0 && fromCol == 3)
+          && (toRow == 0 && toCol == 1) // rook from king point of view on the right!
+          && (special.whiteKingNotMoved && special.whiteRightRookNotMoved) // check if unmoved
+          && (cell[0][1].isEmpty() && cell[0][2].isEmpty())) { // no pieces in between
+
+        if (!isCellUnderAttack(cell, 0, 1) // no pieces attacking the cells
+            && !isCellUnderAttack(cell, 0, 2)
+            && !isCellUnderAttack(cell, 0, 3)) {
+          special.whiteShortCastle = 1; // 0 = no castling, 1 = short castling, 2 = long castling
+          return true;
+        }
+      } else if ((turnManager.getCurrentTurnColor() == Color.WHITE)
+          && (fromRow == 0 && fromCol == 3)
+          && (toRow == 0 && toCol == 5)
+          && (special.whiteKingNotMoved && special.whiteLeftRookNotMoved)
+          && (cell[0][4].isEmpty() && cell[0][5].isEmpty() && cell[0][6].isEmpty())) {
+
+        if (!isCellUnderAttack(cell, 0, 3)
+            && !isCellUnderAttack(cell, 0, 4)
+            && !isCellUnderAttack(cell, 0, 5)) {
+          special.whiteShortCastle = 2; // long castling / queenside castling
+          return true;
+        }
+        // black Castling
+      } else if ((turnManager.getCurrentTurnColor() == Color.BLACK)
+          && (fromRow == 7 && fromCol == 3)
+          && (toRow == 7 && toCol == 1)
+          && (special.blackKingNotMoved && special.blackLeftRookNotMoved)
+          && (cell[7][1].isEmpty() && cell[7][2].isEmpty())) {
+
+        if (!isCellUnderAttack(cell, 7, 1)
+            && !isCellUnderAttack(cell, 7, 2)
+            && !isCellUnderAttack(cell, 7, 3)) {
+          special.blackShortCastle = 1; // same as prior expalined
+          return true;
+        }
+      } else if ((turnManager.getCurrentTurnColor() == Color.BLACK)
+          && (fromRow == 7 && fromCol == 3)
+          && (toRow == 7 && toCol == 5)
+          && (special.blackKingNotMoved && special.blackRightRookNotMoved)
+          && (cell[7][4].isEmpty() && cell[7][5].isEmpty() && cell[7][6].isEmpty())) {
+
+        if (!isCellUnderAttack(cell, 7, 3)
+            && !isCellUnderAttack(cell, 7, 4)
+            && !isCellUnderAttack(cell, 7, 5)) {
+          special.blackShortCastle = 2;
+          return true;
+        }
+      }
     }
+    return false; // Invalid move
   }
 
   /**
-   * Checks if rook moves are possible.
+   * Checks if a rook's move to a destination cell is allowed.
    *
-   * @param fromRow
-   * @param fromCol
-   * @param toRow
-   * @param toCol
-   * @return true if possible, false if not
+   * @return true if the move is allowed, false otherwise.
    */
   public Boolean isRookMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     // Rook can move horizontally or vertically
@@ -438,7 +289,6 @@ public class ChessPiece {
           }
         }
       }
-
       // If moving vertically
       if (fromCol == toCol) {
         int startRow = Math.min(fromRow, toRow) + 1;
@@ -461,6 +311,11 @@ public class ChessPiece {
     return false; // Invalid move
   }
 
+  /**
+   * Checks if a knight's move to a destination cell is allowed.
+   *
+   * @return true if the move is allowed, false otherwise.
+   */
   public Boolean isKnightMoveAllowed(
       Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     int rowDistance = Math.abs(toRow - fromRow);
@@ -480,6 +335,11 @@ public class ChessPiece {
   }
 
   // hard to unterstand
+  /**
+   * Checks if a bishop's move to a destination cell is allowed.
+   *
+   * @return true if the move is allowed, false otherwise.
+   */
   public Boolean isBishopMoveAllowed(
       Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     // Bishop can move diagonally
@@ -512,6 +372,11 @@ public class ChessPiece {
     return false; // Invalid move
   }
 
+  /**
+   * Checks if a queen's move to a destination cell is allowed.
+   *
+   * @return true if the move is allowed, false otherwise.
+   */
   public Boolean isQueenMoveAllowed(Cell[][] cell, int fromRow, int fromCol, int toRow, int toCol) {
     int rowDistance = Math.abs(toRow - fromRow);
     int colDistance = Math.abs(toCol - fromCol);
@@ -537,17 +402,6 @@ public class ChessPiece {
       }
     }
 
-    return false;
-  }
-
-  // hardcoded numbers bad should be altered
-  public void showAllpossibleMoves(Cell[][] cell, int fromRow, int fromCol) {
-    for (int j = 0; j < 8; j++) {
-      for (int i = 0; i < 8; i++) {
-        if (isMoveAllowed(cell, fromRow, fromCol, i, j)) {
-          cell[i][j].setRectangleFill(Color.LIGHTYELLOW);
-        }
-      }
-    }
+    return false; // Invalid move
   }
 }

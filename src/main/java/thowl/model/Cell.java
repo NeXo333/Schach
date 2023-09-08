@@ -8,11 +8,17 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 
+/**
+ * Represents a cell on the chessboard with properties such as position, field color, piece color,
+ * piece name, and piece image and consists of an rectangle as visual. For every square its own cell
+ * and one cell[][] to store all cells.
+ *
+ * @author Marlon Schrader
+ */
 public class Cell extends StackPane {
 
-  public int row; // shows the position on the board (in cell[row][col])
+  public int row; // position on the board
   public int col;
-  // public int cellSize = 70; // from BoardUtils. Wouldnt accept it direct from the other class
 
   private Color fieldColor;
   private Image pieceImage;
@@ -23,9 +29,17 @@ public class Cell extends StackPane {
 
   private final int cellCount = 8;
 
-
-  // Creation of a cell for every cell on the board and controlling it with a big cell[][] for
-  // movements and changes
+  /**
+   * Constructs a cell with the specified properties.
+   *
+   * @param row The row position of the cell.
+   * @param col The column position of the cell.
+   * @param size The size of the cell.
+   * @param fieldColor The color of the cell's background.
+   * @param pieceColor The color of the piece on the cell.
+   * @param pieceName The name of the piece on the cell.
+   * @param pieceImage The image representing the piece on the cell.
+   */
   public Cell(
       int row,
       int col,
@@ -41,7 +55,7 @@ public class Cell extends StackPane {
     this.pieceName = pieceName;
     this.pieceImage = pieceImage;
 
-    // Create the background rectangle
+    // Creates the sqaures/ cells for the board
     background = new Rectangle(size, size, fieldColor);
 
     // Set border properties
@@ -58,57 +72,116 @@ public class Cell extends StackPane {
     getChildren().addAll(background, pieceImageView);
   }
 
+  /**
+   * Getter for cell/field/square background color.
+   *
+   * @return background
+   */
   public Paint getRectangleFill() {
     return this.background.getFill();
   }
 
+  /** Setter for cell backrgound color */
   public void setRectangleFill(Color color) {
     this.background.setFill(color);
     return;
   }
 
-  public int getCellCount(){return cellCount;}
+  /**
+   * Getter for row position.
+   *
+   * @return row.
+   */
   public int getRow() {
     return row;
   }
 
+  /**
+   * Sets the row position of the cell.
+   *
+   * @param row The row position to set.
+   */
   public void setRow(int row) {
     this.row = row;
   }
 
+  /**
+   * Gets the column position of the cell.
+   *
+   * @return The column position.
+   */
   public int getCol() {
     return col;
   }
 
+  /**
+   * Sets the column position of the cell.
+   *
+   * @param col The column position to set.
+   */
   public void setCol(int col) {
     this.col = col;
   }
 
+  /**
+   * Gets the color of the cell's background.
+   *
+   * @return The field color.
+   */
   public Color getFieldColor() {
     return fieldColor;
   }
 
-  // Add getter and setter methods for piece image
+  /**
+   * Gets the image representing the piece on the cell.
+   *
+   * @return The piece image.
+   */
   public Image getPieceImage() {
     return pieceImageView.getImage();
   }
 
+  /**
+   * Gets the color of the piece on the cell.
+   *
+   * @return The piece color.
+   */
   public Color getPieceColor() {
     return pieceColor;
   }
 
+  /**
+   * Sets the color of the piece on the cell.
+   *
+   * @param pieceColor The piece color to set.
+   */
   public void setPieceColor(Color pieceColor) {
     this.pieceColor = pieceColor;
   }
 
+  /**
+   * Gets the name of the piece on the cell.
+   *
+   * @return The piece name.
+   */
   public String getPieceName() {
     return pieceName;
   }
 
+  /**
+   * Sets the name of the piece on the cell.
+   *
+   * @param pieceName The piece name to set.
+   */
   public void setPieceName(String pieceName) {
     this.pieceName = pieceName;
   }
 
+  /**
+   * Checks if the cell is empty (no piece on it).
+   *
+   * @return true if the cell is empty, false otherwise.
+   */
   public Boolean isEmpty() {
     if (pieceName == null) {
       return true;
@@ -117,7 +190,13 @@ public class Cell extends StackPane {
     }
   }
 
-  // big setter:
+  /**
+   * Big setter. Sets the properties of the piece on the cell.
+   *
+   * @param pieceColor The color of the piece.
+   * @param pieceName The name of the piece.
+   * @param pieceImage The image representing the piece.
+   */
   public void setPieceValues(Color pieceColor, String pieceName, Image pieceImage) {
     this.pieceColor = pieceColor;
     this.pieceName = pieceName;
@@ -125,7 +204,7 @@ public class Cell extends StackPane {
     pieceImageView.setImage(pieceImage);
   }
 
-  // clear cell
+  /** Clears the cell, removing any piece information from it. */
   public void clearPiece() {
     this.pieceColor = null;
     this.pieceName = null;

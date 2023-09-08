@@ -15,6 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import thowl.model.TurnManager.GameManager;
 
 /**
  * Class contains methods for 3 different GUI`s Starting Gui
@@ -39,10 +40,7 @@ public class App extends Application {
   }
 
   /**
-   * Main Method: Starts the first Gui and the Functionality of the Buttons.
-   *
-   * <p>Main Method: Calls from class BoardUtils CreateChessboard() to visualize the board and adds
-   * the Header Point from which everything will be executed
+   * Starts the first Gui and the Functionality of the Buttons.
    *
    * @param primaryStage
    */
@@ -142,8 +140,8 @@ public class App extends Application {
     Button Surrender = new Button("Surrender");
     Surrender.setOnAction(
         event -> {
-          ChessPiece chesspiece = new ChessPiece();
-          Color currentColor = chesspiece.getCurrentTurnColor();
+          TurnManager turnManager = GameManager.getTurnManager();
+          Color currentColor = turnManager.getCurrentTurnColor();
 
           if (currentColor == Color.WHITE) {
             System.out.println("White player surrendered");

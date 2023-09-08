@@ -5,36 +5,45 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import thowl.model.ChangeColor.ColorVariable;
+import thowl.model.TurnManager.GameManager;
 
 /**
- * Has methods to create a colored chessboard + indices and will be called by the main method
- * (App.java)
+ * Utility class for managing the chessboard and game logic. This class is responsible for creating
+ * and managing the chessboard, handling player moves, and enforcing game rules such as check and
+ * checkmate.
+ *
+ * @author Marlon Schrader & Justin Schmidt
  */
 public class BoardUtils {
 
-  public final int cellSize = 70;
-  private final int cellCount = 8;
+  public final int cellSize = 70; // size of each chessboard cell
+  private final int cellCount = 8; // cells per row
 
+  // stores all the data about the board and piece positions
   public Cell[][] cell = new Cell[cellCount][cellCount];
-  private Cell selectedCell = null;
+  private Cell fromCell = null; // clicked cell in eventhandler
 
-  private ChessPiece chessPiece = new ChessPiece(); // Declare an instance of ChessPiece
-  private ControlCheckmate control = new ControlCheckmate();
+  private ChessPiece chessPiece = new ChessPiece(); // used for movement logic
+  private ControlCheckmate control = new ControlCheckmate(); // looks after check
+  private SpecialMoves special = new SpecialMoves(); // enPassant, Pawn promotion, castling
+
+  // responsible for color access and color change
+  TurnManager turnManager = GameManager.getTurnManager();
 
   /**
-   * Creates the colored boared and calls method addIndices for the details
+   * Creates the colored chessboard as a GridPane and calls addIndices() for row and column indices
+   * and startPosition() to put the pieces on it.
    *
-   * @return Chessborard
+   * @return Chessboard as a GridPane
    */
   public GridPane createChessboard() {
     GridPane chessboard = new GridPane();
     chessboard.setAlignment(Pos.CENTER);
     chessboard.setHgap(2); // Horizontal gap between cells
     chessboard.setVgap(2); // Vertical gap between cells
-    // doesnt function
-    chessboard.setPadding(new javafx.geometry.Insets(10));
 
-    // Create empty cells for the rest of the chessboard
+    // Create the 64 fieds/ cells without any pieces on them first
     for (int row = 0; row < cellCount; row++) {
       for (int col = 0; col < cellCount; col++) {
         Color cellColor = (row + col) % 2 == 0 ? Color.WHITE : Color.LIGHTGRAY;
@@ -52,7 +61,7 @@ public class BoardUtils {
             cell[row][col], col + 1, row + 1); // one extra row & col for the indices in gridPane
       }
     }
-    // Adds the pieces on there starting positions
+    // Adds the pieces on there starting positions. Board with pieces on it.
     startPosition();
 
     // adds the indices: 1-8 (row) and A-H (col)
@@ -61,6 +70,11 @@ public class BoardUtils {
     return chessboard; // Return the created chessboard GridPane
   }
 
+  /**
+   * Adds row and column indices to the chessboard GridPane (row = 1-8 & col = A-H).
+   *
+   * @param chessboard The GridPane representing the chessboard.
+   */
   public void addIndices(GridPane chessboard) {
     // Add row indices (1-8)
     for (int row = 0; row < 8; row++) {
@@ -80,7 +94,7 @@ public class BoardUtils {
     }
   }
 
-  // Is used to enabel or disable the handleCellClick Funktion via the Gui and the buttons.
+  /** Is used to enabel or disable the handleCellClick function via the Gui and the buttons. */
   public class MovesCheck {
     private static int wert;
 
@@ -97,51 +111,56 @@ public class BoardUtils {
     }
   }
 
-  public void handleCellClick(Cell currentCell) {
+  /**
+   * Handles a cell click event, enabling the player to select and move chess pieces. First click:
+   * NewCell becomes the fromCell and the second click is the newCell or destination cell.
+   *
+   * @param newCell The clicked cell.
+   */
+  public void handleCellClick(Cell newCell) {
     int fromRow;
     int fromCol;
     int toRow;
     int toCol;
 
-    if (selectedCell == null) {
+    if (fromCell == null) {
       // First click: Select the piece to move
-      if (currentCell.getPieceName() != null) {
-        selectedCell = currentCell;
+      if (newCell.getPieceName() != null) {
+        fromCell = newCell;
 
         // Highlight the selected cell by changing its background color if its enabled by the user
         // in the Starting Gui.
         if (MovesCheck.wert == 1) {
-          currentCell.setRectangleFill(Color.YELLOW);
+          newCell.setRectangleFill(Color.YELLOW);
         } else {
           return;
         }
-
         // Highlight the possible moves in lightyellow
-        chessPiece.showAllpossibleMoves(cell, selectedCell.getRow(), selectedCell.getCol());
+        chessPiece.showAllpossibleMoves(cell, fromCell.getRow(), fromCell.getCol());
       }
 
     } else {
       // Second click: Move the piece to the clicked cell
-      fromRow = selectedCell.getRow();
-      fromCol = selectedCell.getCol();
-      toRow = currentCell.getRow();
-      toCol = currentCell.getCol();
+      fromRow = fromCell.getRow();
+      fromCol = fromCell.getCol();
+      toRow = newCell.getRow();
+      toCol = newCell.getCol();
       // exit method if wrong color tries to move
-      if (selectedCell.getPieceColor() != chessPiece.currentTurnColor) {
+      if (fromCell.getPieceColor() != turnManager.getCurrentTurnColor()) {
         System.out.print("It's not your turn. "); // Inform the player
-        // resets all Field colouring
+        // resets Field coloring
         clearFieldColor();
-        selectedCell = null;
+        fromCell = null;
 
         return; // Exit the function without making any move
       }
-
+      // is move a valid chess move?
       if (chessPiece.isMoveAllowed(cell, fromRow, fromCol, toRow, toCol)) {
-        // when move would put own king into check than error
+        // when move would put own king into check than else
         if (!control.iskingInCheck(cell, fromRow, fromCol, toRow, toCol)) {
-          // update kings position
+          // if the king moved, then update kings position
           if (cell[fromRow][fromCol].getPieceName() == "king") {
-            control.kingPositionStorage(chessPiece.currentTurnColor, toRow, toCol);
+            control.kingPositionStorage(turnManager.getCurrentTurnColor(), toRow, toCol);
           }
 
           // params for printing move
@@ -150,8 +169,17 @@ public class BoardUtils {
           String pieceName = cell[fromRow][fromCol].getPieceName();
           char fromChar = (char) (fromCol + 'A'); // makes the indice int to letter
           char toChar = (char) (toCol + 'A');
+
           // executes the move
           chessPiece.movePiece(cell, fromRow, fromCol, toRow, toCol);
+
+          // Check for pawn promotion (pawn at end row)
+          chessPiece.special.nextMove += 1;
+          if (cell[toRow][toCol].getPieceName() == "pawn" && (toRow == 0 || toRow == 7)) {
+            special.openPromotionDialog(cell, cell[toRow][toCol].getPieceColor(), toRow, toCol);
+            System.out.println("pawn changed to " + cell[toRow][toCol].getPieceName());
+          }
+
           // print move
           System.out.println(
               color
@@ -163,71 +191,54 @@ public class BoardUtils {
                   + (toRow + 1)
                   + toChar);
 
-          // set conditions for castling back
-          chessPiece.RookOrKingMoved(cell, fromRow, fromCol, toRow, toCol);
-          chessPiece.whiteShortCastle = 0;
-          chessPiece.blackShortCastle = 0;
+          // reset conditions for castling. If rook or king moved no longer allow castling
+          special.RookOrKingMoved(cell, fromRow, fromCol, toRow, toCol);
+          special.whiteShortCastle = 0;
+          special.blackShortCastle = 0;
 
-          chessPiece.nextMove += 1; // for en passant. Its only possible in the next move
-          // look for pawn promotion (pawn at end row)
-          if (pieceName == "pawn" && (toRow == 0 || toRow == 7)) {
-            chessPiece.openPromotionDialog(cell, cell[toRow][toCol].getPieceColor(), toRow, toCol);
-            System.out.println("pawn changed to " + cell[toRow][toCol].getPieceName());
-          }
-
-          // other player (color change already here to look instantly for check/ checkmate)
-          chessPiece.currentTurnColor =
-              (chessPiece.currentTurnColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
-
-          // make king position of either white or black to var: kingRow, kingCol
+          // change current turn color and look if recent move made enemy into check/ checkmate
+          turnManager.switchTurn();
           int kingRow =
-              (chessPiece.currentTurnColor == Color.WHITE)
+              (turnManager.getCurrentTurnColor() == Color.WHITE)
                   ? control.whiteKingRow
                   : control.blackKingRow;
           int kingCol =
-              (chessPiece.currentTurnColor == Color.WHITE)
+              (turnManager.getCurrentTurnColor() == Color.WHITE)
                   ? control.whiteKingCol
                   : control.blackKingCol;
 
-          if (chessPiece.isCellUnderAttack(cell, kingRow, kingCol)) {
+          if (chessPiece.isCellUnderAttack(cell, kingRow, kingCol)) { // is king under attack ?
             System.out.println("check");
             if (control.isCheckmate(cell)) {
-              if (chessPiece.currentTurnColor == Color.WHITE) {
+              // TODO: Make pop up window instead of printing to the terminal
+              if (turnManager.getCurrentTurnColor() == Color.WHITE) {
                 System.out.println("CHECKMATE: BLACK WON");
-              } else if (chessPiece.currentTurnColor == Color.BLACK) {
+              } else {
                 System.out.println("CHECKMATE: WHITE WON");
               }
             }
           }
+          // deselect cell after move is made
           clearFieldColor();
-          selectedCell = null;
+          fromCell = null;
         } else {
-          // deselects the piece if the move was not possible
-          selectedCell.setRectangleFill(selectedCell.getFieldColor());
+          // deselect cell if own king is in check
+          fromCell.setRectangleFill(fromCell.getFieldColor());
           clearFieldColor();
-          selectedCell = null;
-          System.out.println(" Moves king into or already is in check ");
-          ;
+          fromCell = null;
+          System.out.println(" Puts the king into check or is already in check ");
         }
       } else {
-        // deselects the piece if the move was not possible
-        selectedCell.setRectangleFill(selectedCell.getFieldColor());
+        // deselect the cell if its an invalid move
+        fromCell.setRectangleFill(fromCell.getFieldColor());
         clearFieldColor();
-        selectedCell = null;
+        fromCell = null;
         System.out.println(" Not a possible move ");
       }
     }
   }
 
-  // clears the field color of a clicked field
-  private void clearFieldColor() {
-    for (int i = 0; i < cellCount; i++) {
-      for (int j = 0; j < cellCount; j++) {
-        cell[j][i].setRectangleFill(cell[i][j].getFieldColor());
-      }
-    }
-  }
-
+  /** Sets the chess pieces on there initial positions. */
   private void startPosition() {
     // white rook
     Image pieceImage = new Image(getClass().getResourceAsStream("/images/whiteRook.png"));
@@ -283,8 +294,21 @@ public class BoardUtils {
     }
   }
 
+  /** Clears the field color of all cells on the chessboard. */
+  private void clearFieldColor() {
+    for (int i = 0; i < cellCount; i++) {
+      for (int j = 0; j < cellCount; j++) {
+        cell[j][i].setRectangleFill(cell[i][j].getFieldColor());
+      }
+    }
+  }
+
   // doesnt function
-  // used for updating complete gamefield color
+  /**
+   * Updates the colors of the chessboard based on the given ColorVariable instance.
+   *
+   * @param colorVariable The ColorVariable instance specifying the colors to update.
+   */
   public static void updateColors(ColorVariable colorVariable) {
     // Verwenden Sie die übergebene ColorVariable-Instanz, um die Farben zu aktualisieren
     Color finalColor1 = colorVariable.getColor1();
