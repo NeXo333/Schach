@@ -1,1 +1,119 @@
-test
+# Schach / Chess 
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
+
+![start](src/main/resources/forREADME/start.png) ![game](src/main/resources/forREADME/game.png)
+
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Features](#features)
+3. [Getting Started](#getting-started)
+   - [Prerequisites](#prerequisites)
+   - [Installation](#installation)
+4. [Usage](#usage)
+5. [Contributing](#contributing)
+6. [License](#license)
+
+
+
+## Introduction
+
+Welcome to the Chess Game project! This chess game allows you to play offline
+against your friends on a single device. While it's currently offline-only, 
+future enhancements may include online multiplayer and AI opponents. Our goal was to create a 
+well-structured and modularized project that can be easily extended in the future.
+
+
+
+## Features
+
+Here are some key features that make our chess game unique:
+
+- **Ease of Use:** The game is designed to be simple and intuitive, 
+making it accessible for players of all skill levels.
+
+- **Modularized Movement Logic:** The movement logic is separated and easy to understand, 
+allowing for future modifications and enhancements.
+
+- **Move Highlights:** The game highlights possible moves to assist players, 
+but this feature can also be turned off for those who prefer a more traditional 
+board game experience.
+
+
+
+## Getting Started
+
+To set up and run this project, you'll need the following software and tools:
+
+
+### Prerequisites
+
+1. **Java Development Kit (JDK)**: Ensure you have Java SE 17.0.7 LTS 
+or a compatible version installed on your system. You can download it
+from the [official Oracle website](https://www.oracle.com/java/technologies/javase-downloads.html) 
+or use an OpenJDK distribution.
+
+2. **JavaFX SDK**: This project relies on JavaFX for the user interface. 
+Download the JavaFX SDK version 20.0.1 from the [official OpenJFX website](https://openjfx.io/).
+
+
+### IDE (Integrated Development Environment)
+
+You can use any Java-compatible IDE of your choice. Popular options include:
+
+- [Eclipse](https://www.eclipse.org/)
+- [IntelliJ IDEA](https://www.jetbrains.com/idea/)
+- [Visual Studio Code](https://code.visualstudio.com/)
+
+
+### Installation
+
+Follow these steps to set up the project:
+
+1. **Clone the Repository**: Clone this repository to your local machine using Git:
+   git clone https://github.com/NeXo333/Schach.git
+
+2. **Open in Your IDE**: Open the project in your chosen IDE by navigating to the project directory.
+
+3. **Configure JavaFX**: Depending on your IDE, you may need to configure JavaFX to work with your project. Refer to your IDE's documentation for specific instructions.
+
+4. **Build and Run**: Build and run the project from your IDE. Ensure that you specify the main class that contains the project's entry point.
+
+5. **Enjoy**: You should now have the chess game up and running. Start a game and challenge your friends!
+
+
+
+## Usage
+
+To play the game, follow these basic steps:
+
+1. Launch the game.
+
+2. Choose if u want show possible moves and play a game on time
+for more pressure (needs to be implemented)
+
+3. Have fun and enjoy your game!
+
+
+
+## Contributing
+
+We welcome contributions to improve and expand this chess game. To contribute:
+
+- Try to stick to google java style as we did too
+
+- Fork the repository.
+
+- Make your changes or enhancements.
+
+- Submit a pull request with a clear description of your changes.
+
+Please adhere to our coding standards and conventions when contributing.
+
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
